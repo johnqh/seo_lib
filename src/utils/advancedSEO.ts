@@ -261,14 +261,21 @@ export const createTechnicalArticleSchema = (config: AdvancedSEOConfig) => {
 /**
  * Generate a Schema.org FAQPage schema from an array of Q&A entries.
  *
- * Note: Includes randomized upvoteCount values for SEO variation.
+ * Each FAQ item may include an optional `upvoteCount`. When provided, it is
+ * included in the schema output. When omitted, the field is excluded entirely
+ * (it is not required by Schema.org).
  *
- * @param faqs - Array of FAQ objects with question, answer, and optional category
+ * @param faqs - Array of FAQ objects with question, answer, optional category and upvoteCount
  * @param branding - App branding configuration for author attribution
  * @returns A Schema.org FAQPage JSON-LD object
  */
 export const createEnhancedFAQSchema = (
-  faqs: Array<{ question: string; answer: string; category?: string }>,
+  faqs: Array<{
+    question: string;
+    answer: string;
+    category?: string;
+    upvoteCount?: number;
+  }>,
   branding: AppBrandingConfig
 ) => {
   const brandingConfig = getBranding(branding);
@@ -283,14 +290,13 @@ export const createEnhancedFAQSchema = (
         '@type': 'Answer',
         text: faq.answer,
         dateCreated: new Date().toISOString(),
-        upvoteCount: Math.floor(Math.random() * 50) + 10,
         author: {
           '@type': 'Organization',
           name: brandingConfig.appName,
         },
       },
       answerCount: 1,
-      upvoteCount: Math.floor(Math.random() * 100) + 20,
+      ...(faq.upvoteCount != null && { upvoteCount: faq.upvoteCount }),
       dateCreated: '2024-01-01T00:00:00Z',
       category: faq.category || 'General',
     })),

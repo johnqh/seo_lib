@@ -159,6 +159,48 @@ describe('advancedSEO utilities', () => {
       expect(schema.mainEntity[0].category).toBe('General');
       expect(schema.mainEntity[1].category).toBe('Setup');
     });
+
+    it('should omit upvoteCount when not provided', () => {
+      const schema = createEnhancedFAQSchema(faqs, mockBranding);
+
+      expect(schema.mainEntity[0]).not.toHaveProperty('upvoteCount');
+      expect(schema.mainEntity[1]).not.toHaveProperty('upvoteCount');
+    });
+
+    it('should include upvoteCount when provided', () => {
+      const faqsWithUpvotes = [
+        {
+          question: 'What is Web3 email?',
+          answer: 'Web3 email uses blockchain for authentication.',
+          category: 'General',
+          upvoteCount: 42,
+        },
+        {
+          question: 'How do I connect my wallet?',
+          answer: 'Click the connect button and approve the connection.',
+          category: 'Setup',
+          upvoteCount: 100,
+        },
+      ];
+      const schema = createEnhancedFAQSchema(faqsWithUpvotes, mockBranding);
+
+      expect(schema.mainEntity[0].upvoteCount).toBe(42);
+      expect(schema.mainEntity[1].upvoteCount).toBe(100);
+    });
+
+    it('should produce deterministic output', () => {
+      const schema1 = createEnhancedFAQSchema(faqs, mockBranding);
+      const schema2 = createEnhancedFAQSchema(faqs, mockBranding);
+
+      // Structure should be identical (no randomness)
+      expect(schema1.mainEntity[0].name).toBe(schema2.mainEntity[0].name);
+      expect(schema1.mainEntity[0].acceptedAnswer.text).toBe(
+        schema2.mainEntity[0].acceptedAnswer.text
+      );
+      expect(schema1.mainEntity[0].category).toBe(
+        schema2.mainEntity[0].category
+      );
+    });
   });
 
   describe('createAIOptimizedSchema', () => {

@@ -2,19 +2,19 @@
 
 ## Priority 1 - High Impact, Low Effort
 
-### 1.1 Render all AIMetaProps in AIMeta component
+### 1.1 Render all AIMetaProps in AIMeta component ✅
 The `AIMetaProps` interface defines 14 props but only 3 are rendered (`contentType`, `aiSummary`, `technicalComplexity`). Either render the remaining props as meta tags or remove unused props from the interface to avoid misleading consumers.
 
-### 1.2 Add a combined `verify` or `check-all` script
+### 1.2 Add a combined `verify` or `check-all` script ✅
 Other Sudobility projects have a `bun run verify` command. Adding one to `package.json` would align with ecosystem conventions:
 ```json
 "verify": "bun run lint && bun run type-check && bun run test"
 ```
 
-### 1.3 Replace Math.random() in SemanticInput with deterministic ID generation
+### 1.3 Replace Math.random() in SemanticInput with deterministic ID generation ✅
 `SemanticInput` generates IDs via `Math.random()`, which is non-deterministic and not SSR-safe. Use a counter, `useId()` (React 18+), or accept a required `id` prop.
 
-### 1.4 Replace Math.random() in createEnhancedFAQSchema
+### 1.4 Replace Math.random() in createEnhancedFAQSchema ✅
 The FAQ schema generator uses `Math.random()` for `upvoteCount`, making output non-deterministic and untestable with snapshots. Either accept counts as parameters or remove the random values.
 
 ## Priority 2 - Medium Impact, Medium Effort
@@ -37,7 +37,7 @@ coverage: {
 }
 ```
 
-### 2.4 Export SemanticSectionProps interface
+### 2.4 Export SemanticSectionProps interface ✅
 `SemanticSectionProps`, `HeadingProps`, `ListProps`, `LandmarkProps`, `LoadingProps`, `FigureProps`, `ButtonProps`, and `LinkProps` are not exported. Consumers cannot type-safely extend these components without access to their prop types.
 
 ## Priority 3 - Lower Impact, Higher Effort

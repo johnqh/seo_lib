@@ -6,7 +6,7 @@
  * Designed to enforce semantic HTML best practices for improved SEO and accessibility.
  */
 
-import React from 'react';
+import React, { useId } from 'react';
 
 /**
  * Shared props interface for semantic section components.
@@ -14,7 +14,7 @@ import React from 'react';
  * Provides common properties accepted by landmark and sectioning components
  * such as Main, Article, Section, Header, Footer, Nav, and Aside.
  */
-interface SemanticSectionProps {
+export interface SemanticSectionProps {
   /** Child elements to render within the section */
   children: React.ReactNode;
   /** Optional CSS class name */
@@ -79,7 +79,7 @@ export const Section: React.FC<SemanticSectionProps> = ({
 );
 
 /** Props for the Nav component. Requires `aria-label` for accessibility. */
-interface NavProps extends SemanticSectionProps {
+export interface NavProps extends SemanticSectionProps {
   /** Required accessible label for the navigation landmark */
   'aria-label': string;
 }
@@ -149,7 +149,7 @@ export const Aside: React.FC<SemanticSectionProps> = ({
 );
 
 /** Props for the Figure component. */
-interface FigureProps {
+export interface FigureProps {
   /** Child elements (typically an image or illustration) */
   children: React.ReactNode;
   /** Optional caption text rendered as a `<figcaption>` */
@@ -180,7 +180,7 @@ export const Figure: React.FC<FigureProps> = ({
 );
 
 /** Props for heading components (H1-H4). */
-interface HeadingProps {
+export interface HeadingProps {
   /** Heading text or content */
   children: React.ReactNode;
   /** Optional CSS class name */
@@ -232,7 +232,7 @@ export const H4: React.FC<HeadingProps> = ({
 );
 
 /** Props for list components (OrderedList, UnorderedList). */
-interface ListProps {
+export interface ListProps {
   children: React.ReactNode;
   className?: string;
   'aria-label'?: string;
@@ -259,7 +259,7 @@ export const UnorderedList: React.FC<ListProps> = ({
 );
 
 /** Props for the SemanticButton component. Extends native button attributes. */
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
   'aria-describedby'?: string;
 }
@@ -299,7 +299,7 @@ export const SemanticButton: React.FC<ButtonProps> = ({
 };
 
 /** Props for the SemanticLink component. Extends native anchor attributes. */
-interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   external?: boolean;
   'aria-describedby'?: string;
 }
@@ -364,7 +364,7 @@ export const SkipLink: React.FC<{ href: string }> = ({ href }) => (
 );
 
 /** Props for ARIA landmark region components. */
-interface LandmarkProps {
+export interface LandmarkProps {
   children: React.ReactNode;
   className?: string;
   'aria-label'?: string;
@@ -401,7 +401,7 @@ export const ComplementaryRegion: React.FC<LandmarkProps> = ({
 );
 
 /** Props for the SemanticForm component. Extends native form attributes. */
-interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
+export interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   'aria-label'?: string;
   'aria-labelledby'?: string;
 }
@@ -423,7 +423,7 @@ export const SemanticForm: React.FC<FormProps> = ({
 );
 
 /** Props for the SemanticInput component. Extends native input attributes. */
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Label text displayed above the input */
   label: string;
   /** Error message displayed below the input; sets aria-invalid when present */
@@ -447,7 +447,8 @@ export const SemanticInput: React.FC<InputProps> = ({
   className = '',
   ...props
 }) => {
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = id || `input-${generatedId}`;
   const errorId = error ? `${inputId}-error` : undefined;
   const helpId = helpText ? `${inputId}-help` : undefined;
 
@@ -493,7 +494,7 @@ export const ScreenReaderOnly: React.FC<{ children: React.ReactNode }> = ({
 }) => <span className="sr-only">{children}</span>;
 
 /** Props for the SemanticLoading component. */
-interface LoadingProps {
+export interface LoadingProps {
   /** Screen-reader message (defaults to "Loading...") */
   message?: string;
   /** Spinner size: 'sm' (16px), 'md' (32px), or 'lg' (48px) */
