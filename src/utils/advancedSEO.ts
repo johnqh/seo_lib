@@ -3,13 +3,25 @@
  * Comprehensive structured data and semantic markup for search engines and AI crawlers
  */
 
+/**
+ * Branding configuration for SEO generators.
+ * Provides app identity used across all schema generators.
+ */
 export interface AppBrandingConfig {
-  appName: string; // Required - no default
-  baseUrl: string; // Required - no default
+  /** Application name (required) */
+  appName: string;
+  /** Base URL of the application (required, e.g., 'https://example.com') */
+  baseUrl: string;
+  /** Twitter handle for social cards (e.g., '@myapp') */
   twitterHandle?: string;
+  /** Email domain for contact references */
   emailDomain?: string;
 }
 
+/**
+ * Configuration for advanced SEO generation functions.
+ * Used by all schema generators, OpenGraph, Twitter Card, and AI meta tag creators.
+ */
 export interface AdvancedSEOConfig {
   title: string;
   description: string;
@@ -58,7 +70,15 @@ const getBranding = (
   };
 };
 
-// Enhanced Web3-specific structured data
+/**
+ * Generate a Schema.org SoftwareApplication schema for a Web3 product.
+ *
+ * Includes offers, feature lists, blockchain network support, wallet compatibility,
+ * and audience targeting.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns A Schema.org SoftwareApplication JSON-LD object
+ */
 export const createWeb3ProductSchema = (config: AdvancedSEOConfig) => {
   const audienceArray = ensureArray(config.audience);
   const branding = getBranding(config.branding);
@@ -151,7 +171,15 @@ export const createWeb3ProductSchema = (config: AdvancedSEOConfig) => {
   };
 };
 
-// Advanced Article Schema for guides and documentation
+/**
+ * Generate a Schema.org TechnicalArticle schema for guides and documentation.
+ *
+ * Includes author/publisher organization, educational level, reading time,
+ * and learning resource type.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns A Schema.org TechnicalArticle JSON-LD object
+ */
 export const createTechnicalArticleSchema = (config: AdvancedSEOConfig) => {
   const keywordsArray = ensureArray(config.keywords);
   const audienceArray = ensureArray(config.audience);
@@ -230,7 +258,15 @@ export const createTechnicalArticleSchema = (config: AdvancedSEOConfig) => {
   };
 };
 
-// Enhanced FAQ Schema with AI-optimized answers
+/**
+ * Generate a Schema.org FAQPage schema from an array of Q&A entries.
+ *
+ * Note: Includes randomized upvoteCount values for SEO variation.
+ *
+ * @param faqs - Array of FAQ objects with question, answer, and optional category
+ * @param branding - App branding configuration for author attribution
+ * @returns A Schema.org FAQPage JSON-LD object
+ */
 export const createEnhancedFAQSchema = (
   faqs: Array<{ question: string; answer: string; category?: string }>,
   branding: AppBrandingConfig
@@ -261,7 +297,15 @@ export const createEnhancedFAQSchema = (
   };
 };
 
-// AI-specific structured data for better LLM understanding
+/**
+ * Generate a Schema.org WebPage schema optimized for AI/LLM crawlers.
+ *
+ * Includes significant links, related links, mentions of tools/services,
+ * and interaction targets for better LLM understanding.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns A Schema.org WebPage JSON-LD object with AI-optimized metadata
+ */
 export const createAIOptimizedSchema = (config: AdvancedSEOConfig) => {
   const branding = getBranding(config.branding);
   const pathname = getCurrentPathname(config.pathname);
@@ -335,7 +379,12 @@ export const createAIOptimizedSchema = (config: AdvancedSEOConfig) => {
   };
 };
 
-// OpenGraph optimization for social sharing and AI crawlers
+/**
+ * Generate Open Graph meta tag key-value pairs for social sharing.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns An object of Open Graph property-value pairs (e.g., 'og:title', 'og:description')
+ */
 export const createEnhancedOpenGraph = (config: AdvancedSEOConfig) => {
   const keywordsArray = ensureArray(config.keywords);
   const branding = getBranding(config.branding);
@@ -361,7 +410,12 @@ export const createEnhancedOpenGraph = (config: AdvancedSEOConfig) => {
   };
 };
 
-// Twitter Card optimization with enhanced metadata
+/**
+ * Generate Twitter Card meta tag key-value pairs.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns An object of Twitter Card property-value pairs (e.g., 'twitter:card', 'twitter:title')
+ */
 export const createEnhancedTwitterCard = (config: AdvancedSEOConfig) => {
   const branding = getBranding(config.branding);
 
@@ -380,7 +434,14 @@ export const createEnhancedTwitterCard = (config: AdvancedSEOConfig) => {
   };
 };
 
-// AI-specific meta tags for enhanced understanding
+/**
+ * Generate custom AI/LLM/Web3/semantic meta tags for enhanced AI understanding.
+ *
+ * Returns meta tags in namespaces: ai:*, web3:*, llm:*, semantic:*, content:*.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns An object of AI meta tag key-value pairs
+ */
 export const createAIMetaTags = (config: AdvancedSEOConfig) => {
   const keywordsArray = ensureArray(config.keywords);
   const audienceArray = ensureArray(config.audience);
@@ -420,7 +481,15 @@ export const createAIMetaTags = (config: AdvancedSEOConfig) => {
   };
 };
 
-// Comprehensive SEO helper function
+/**
+ * All-in-one SEO generation function.
+ *
+ * Combines all schema generators, OpenGraph, Twitter Card, and AI meta tag
+ * creators into a single output object.
+ *
+ * @param config - Advanced SEO configuration with branding and content details
+ * @returns Object containing structuredData, openGraph, twitterCard, aiMetaTags, and jsonLD arrays
+ */
 export const generateAdvancedSEO = (config: AdvancedSEOConfig) => ({
   structuredData: {
     product: createWeb3ProductSchema(config),

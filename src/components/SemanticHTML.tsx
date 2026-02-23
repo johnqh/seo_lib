@@ -1,19 +1,39 @@
+/**
+ * @fileoverview Semantic HTML Enhancement Components.
+ *
+ * Provides a collection of 20+ React components that wrap standard HTML elements
+ * with proper ARIA roles, accessibility attributes, and Tailwind CSS styling.
+ * Designed to enforce semantic HTML best practices for improved SEO and accessibility.
+ */
+
 import React from 'react';
 
 /**
- * Semantic HTML Enhancement Components
- * These components provide semantic meaning to improve accessibility and SEO
+ * Shared props interface for semantic section components.
+ *
+ * Provides common properties accepted by landmark and sectioning components
+ * such as Main, Article, Section, Header, Footer, Nav, and Aside.
  */
-
 interface SemanticSectionProps {
+  /** Child elements to render within the section */
   children: React.ReactNode;
+  /** Optional CSS class name */
   className?: string;
+  /** Optional element ID */
   id?: string;
+  /** Accessible label for the section */
   'aria-label'?: string;
+  /** ID of the element that labels this section */
   'aria-labelledby'?: string;
 }
 
-// Main content section
+/**
+ * Main content section component.
+ * Renders a `<main>` element with `role="main"`.
+ *
+ * @param props - Semantic section props
+ * @returns A main landmark element
+ */
 export const Main: React.FC<SemanticSectionProps> = ({
   children,
   className,
@@ -24,7 +44,13 @@ export const Main: React.FC<SemanticSectionProps> = ({
   </main>
 );
 
-// Article content
+/**
+ * Article content component.
+ * Renders an `<article>` element for self-contained content.
+ *
+ * @param props - Semantic section props
+ * @returns An article element
+ */
 export const Article: React.FC<SemanticSectionProps> = ({
   children,
   className,
@@ -35,7 +61,13 @@ export const Article: React.FC<SemanticSectionProps> = ({
   </article>
 );
 
-// Section within content
+/**
+ * Section component for thematic grouping of content.
+ * Renders a `<section>` element.
+ *
+ * @param props - Semantic section props
+ * @returns A section element
+ */
 export const Section: React.FC<SemanticSectionProps> = ({
   children,
   className,
@@ -46,18 +78,32 @@ export const Section: React.FC<SemanticSectionProps> = ({
   </section>
 );
 
-// Navigation component
+/** Props for the Nav component. Requires `aria-label` for accessibility. */
 interface NavProps extends SemanticSectionProps {
-  'aria-label': string; // Required for nav elements
+  /** Required accessible label for the navigation landmark */
+  'aria-label': string;
 }
 
+/**
+ * Navigation landmark component.
+ * Renders a `<nav>` element with `role="navigation"`.
+ *
+ * @param props - Nav props (aria-label is required)
+ * @returns A nav landmark element
+ */
 export const Nav: React.FC<NavProps> = ({ children, className, ...props }) => (
   <nav className={className} {...props} role="navigation">
     {children}
   </nav>
 );
 
-// Header component
+/**
+ * Header/banner component.
+ * Renders a `<header>` element with `role="banner"`.
+ *
+ * @param props - Semantic section props
+ * @returns A header element
+ */
 export const Header: React.FC<SemanticSectionProps> = ({
   children,
   className,
@@ -68,7 +114,13 @@ export const Header: React.FC<SemanticSectionProps> = ({
   </header>
 );
 
-// Footer component
+/**
+ * Footer/content info component.
+ * Renders a `<footer>` element with `role="contentinfo"`.
+ *
+ * @param props - Semantic section props
+ * @returns A footer element
+ */
 export const Footer: React.FC<SemanticSectionProps> = ({
   children,
   className,
@@ -79,7 +131,13 @@ export const Footer: React.FC<SemanticSectionProps> = ({
   </footer>
 );
 
-// Aside content (sidebars, related content)
+/**
+ * Aside/complementary content component (sidebars, related content).
+ * Renders an `<aside>` element with `role="complementary"`.
+ *
+ * @param props - Semantic section props
+ * @returns An aside element
+ */
 export const Aside: React.FC<SemanticSectionProps> = ({
   children,
   className,
@@ -90,14 +148,25 @@ export const Aside: React.FC<SemanticSectionProps> = ({
   </aside>
 );
 
-// Figure with caption
+/** Props for the Figure component. */
 interface FigureProps {
+  /** Child elements (typically an image or illustration) */
   children: React.ReactNode;
+  /** Optional caption text rendered as a `<figcaption>` */
   caption?: string;
+  /** Optional CSS class name */
   className?: string;
+  /** Optional element ID */
   id?: string;
 }
 
+/**
+ * Figure component with optional caption.
+ * Renders a `<figure>` element with an optional `<figcaption>`.
+ *
+ * @param props - Figure props including optional caption
+ * @returns A figure element with optional figcaption
+ */
 export const Figure: React.FC<FigureProps> = ({
   children,
   caption,
@@ -110,11 +179,15 @@ export const Figure: React.FC<FigureProps> = ({
   </figure>
 );
 
-// Enhanced heading components with proper hierarchy
+/** Props for heading components (H1-H4). */
 interface HeadingProps {
+  /** Heading text or content */
   children: React.ReactNode;
+  /** Optional CSS class name */
   className?: string;
+  /** Optional element ID */
   id?: string;
+  /** ARIA heading level override */
   'aria-level'?: number;
 }
 
@@ -158,7 +231,7 @@ export const H4: React.FC<HeadingProps> = ({
   </h4>
 );
 
-// List components with semantic meaning
+/** Props for list components (OrderedList, UnorderedList). */
 interface ListProps {
   children: React.ReactNode;
   className?: string;
@@ -185,12 +258,19 @@ export const UnorderedList: React.FC<ListProps> = ({
   </ul>
 );
 
-// Enhanced button with proper semantics
+/** Props for the SemanticButton component. Extends native button attributes. */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
   'aria-describedby'?: string;
 }
 
+/**
+ * Semantically enhanced button with variant styling and ARIA support.
+ * Supports `primary`, `secondary`, and `danger` variants with Tailwind classes.
+ *
+ * @param props - Button props including variant and standard button attributes
+ * @returns A styled button element with aria-disabled support
+ */
 export const SemanticButton: React.FC<ButtonProps> = ({
   children,
   className = '',
@@ -218,12 +298,20 @@ export const SemanticButton: React.FC<ButtonProps> = ({
   );
 };
 
-// Enhanced link with accessibility
+/** Props for the SemanticLink component. Extends native anchor attributes. */
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   external?: boolean;
   'aria-describedby'?: string;
 }
 
+/**
+ * Semantically enhanced link with accessibility features.
+ * When `external` is true, adds `target="_blank"`, `rel="noopener noreferrer"`,
+ * and a screen-reader-only "(opens in new tab)" notice.
+ *
+ * @param props - Link props including external flag
+ * @returns An anchor element with accessibility enhancements
+ */
 export const SemanticLink: React.FC<LinkProps> = ({
   children,
   external,
@@ -259,7 +347,13 @@ export const SemanticLink: React.FC<LinkProps> = ({
   );
 };
 
-// Skip navigation link for accessibility
+/**
+ * Skip navigation link for keyboard accessibility.
+ * Visually hidden until focused, then positions absolutely at the top-left.
+ *
+ * @param props - Props containing the target href (typically "#main-content")
+ * @returns A skip-to-content link element
+ */
 export const SkipLink: React.FC<{ href: string }> = ({ href }) => (
   <a
     href={href}
@@ -269,7 +363,7 @@ export const SkipLink: React.FC<{ href: string }> = ({ href }) => (
   </a>
 );
 
-// Landmark regions with proper ARIA labels
+/** Props for ARIA landmark region components. */
 interface LandmarkProps {
   children: React.ReactNode;
   className?: string;
@@ -306,12 +400,18 @@ export const ComplementaryRegion: React.FC<LandmarkProps> = ({
   </div>
 );
 
-// Form components with proper labeling
+/** Props for the SemanticForm component. Extends native form attributes. */
 interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   'aria-label'?: string;
   'aria-labelledby'?: string;
 }
 
+/**
+ * Semantic form component with ARIA label support.
+ *
+ * @param props - Form props including optional aria-label
+ * @returns A form element
+ */
 export const SemanticForm: React.FC<FormProps> = ({
   children,
   className,
@@ -322,12 +422,23 @@ export const SemanticForm: React.FC<FormProps> = ({
   </form>
 );
 
+/** Props for the SemanticInput component. Extends native input attributes. */
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  /** Label text displayed above the input */
   label: string;
+  /** Error message displayed below the input; sets aria-invalid when present */
   error?: string;
+  /** Help text displayed below the input */
   helpText?: string;
 }
 
+/**
+ * Semantic input component with auto-generated label, error, and help text.
+ * Generates unique IDs for label-input association and ARIA describedby references.
+ *
+ * @param props - Input props including label, error, and helpText
+ * @returns A labeled input with optional error and help text
+ */
 export const SemanticInput: React.FC<InputProps> = ({
   label,
   error,
@@ -370,17 +481,32 @@ export const SemanticInput: React.FC<InputProps> = ({
   );
 };
 
-// Screen reader only text
+/**
+ * Screen reader only text component.
+ * Renders visually hidden text using the `.sr-only` CSS class.
+ *
+ * @param props - Props containing children text
+ * @returns A visually hidden span element
+ */
 export const ScreenReaderOnly: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => <span className="sr-only">{children}</span>;
 
-// Loading indicator with proper semantics
+/** Props for the SemanticLoading component. */
 interface LoadingProps {
+  /** Screen-reader message (defaults to "Loading...") */
   message?: string;
+  /** Spinner size: 'sm' (16px), 'md' (32px), or 'lg' (48px) */
   size?: 'sm' | 'md' | 'lg';
 }
 
+/**
+ * Accessible loading indicator with spinner animation.
+ * Uses `role="status"` and `aria-live="polite"` for screen reader announcements.
+ *
+ * @param props - Loading props including message and size
+ * @returns A loading indicator with screen-reader support
+ */
 export const SemanticLoading: React.FC<LoadingProps> = ({
   message = 'Loading...',
   size = 'md',

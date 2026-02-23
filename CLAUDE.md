@@ -137,6 +137,11 @@ bun run format:check     # Prettier check (no write)
 bun run prepublishOnly   # Runs build before npm publish
 ```
 
+**Pre-commit check** (no `verify` or `check-all` script; run manually):
+```bash
+bun run lint && bun run type-check && bun run test
+```
+
 ## Architecture / Patterns
 
 ### Build Pipeline
@@ -170,11 +175,21 @@ bun run prepublishOnly   # Runs build before npm publish
 - Semantic HTML components apply Tailwind CSS utility classes for built-in styling.
 - Utility functions return plain objects (schema.org JSON-LD, meta tag key-value maps) -- they do not render React elements (except `createSemanticHeading` which returns a `React.createElement` call).
 - SSR-safe: `advancedSEO.ts` uses a `getCurrentPathname()` helper that checks for `window` existence before accessing `window.location.pathname`, with a `pathname` prop override.
+- Default exports are provided in `advancedSEO.ts`, `aiTrainingMetadata.ts`, and `seo-headings.ts` as object literals grouping key exports, but the barrel files use named `export *` re-exports.
 
 ### CI/CD
 - GitHub Actions workflow on `main` and `develop` branches (push + PR).
 - Delegates to a reusable workflow at `johnqh/workflows/.github/workflows/unified-cicd.yml@main`.
 - Configured for public NPM publishing with provenance (`id-token: write`).
+
+## Gotchas / Known Issues
+
+- **No `bun run verify` script**: Unlike other Sudobility projects, there is no combined verify/check-all command. Run `bun run lint && bun run type-check && bun run test` manually before committing.
+- **Helmet mock in tests**: Tests mock `react-helmet-async` so that `<Helmet>` renders children directly into the DOM. This means test assertions check rendered meta tags as DOM elements, not actual `<head>` modifications.
+- **SemanticInput random IDs**: `SemanticInput` generates random IDs with `Math.random()` which is not deterministic. Provide an explicit `id` prop in tests.
+- **`createEnhancedFAQSchema` uses `Math.random()`**: The FAQ schema generator includes randomized `upvoteCount` values, making output non-deterministic. This is intentional for SEO variation but complicates snapshot testing.
+- **Web3-specific content**: Many schema generators and presets contain hardcoded Web3 email platform content (blockchain networks, wallet types, ENS/SNS references). Consumers should provide their own `branding` config and consider overriding the preset content.
+- **AIMeta props gap**: The `AIMetaProps` interface defines many optional props (blockchainNetworks, features, useCase, etc.) but the `AIMeta` component only renders three meta tags (`ai:content-type`, `ai:summary`, `ai:complexity`), ignoring most props.
 
 ## Common Tasks
 
@@ -210,17 +225,20 @@ bun run prepublishOnly   # Runs build before npm publish
 | `react-helmet-async` | `>=2.0.0` |
 
 ### Key Dev Dependencies
-| Package | Purpose |
-|---------|---------|
-| `vite` (^7.1.12) | Library-mode bundler |
-| `@vitejs/plugin-react` | React JSX transform for Vite |
-| `vite-plugin-dts` | Declaration file generation during Vite build |
-| `typescript` (^5.9.3) | Type checking and declaration emit |
-| `vitest` (^3.2.4) | Test runner (Vite-native) |
-| `jsdom` (^26.1.0) | DOM environment for Vitest |
-| `@testing-library/react` | Component test rendering |
-| `@testing-library/jest-dom` | DOM assertion matchers |
-| `eslint` (^9.38.0) | Linting (flat config) |
-| `@typescript-eslint/*` | TypeScript ESLint parser and plugin |
-| `prettier` (^3.6.2) | Code formatting |
-| `eslint-plugin-prettier` | Run Prettier as ESLint rule |
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `vite` | ^7.1.12 | Library-mode bundler |
+| `@vitejs/plugin-react` | ^5.1.0 | React JSX transform for Vite |
+| `vite-plugin-dts` | ^4.5.4 | Declaration file generation during Vite build |
+| `typescript` | ^5.9.3 | Type checking and declaration emit |
+| `vitest` | ^3.2.4 | Test runner (Vite-native) |
+| `jsdom` | ^26.1.0 | DOM environment for Vitest |
+| `@testing-library/react` | ^16.3.0 | Component test rendering |
+| `@testing-library/jest-dom` | ^6.9.1 | DOM assertion matchers |
+| `eslint` | ^9.38.0 | Linting (flat config) |
+| `@typescript-eslint/*` | ^8.44.1 | TypeScript ESLint parser and plugin |
+| `prettier` | ^3.6.2 | Code formatting |
+| `eslint-plugin-prettier` | ^5.5.4 | Run Prettier as ESLint rule |
+| `eslint-plugin-react-hooks` | ^7.0.0 | React Hooks linting |
+| `eslint-plugin-react-refresh` | ^0.4.0 | React Refresh (HMR) validation |
+| `ajv` | ^8.17.1 | JSON Schema validation (dev tooling) |

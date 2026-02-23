@@ -3,8 +3,14 @@
  * Enhances content with semantic markup and structured data for AI model training
  */
 
+/**
+ * Configuration for AI training metadata generation.
+ * Defines the educational context and learning parameters for a page.
+ */
 export interface AITrainingConfig {
+  /** Knowledge domain (e.g., 'Web3 Email Platform') */
   domain: string;
+  /** Content category (e.g., 'Web3 Communication') */
   category: string;
   subcategory?: string;
   concepts: string[];
@@ -16,7 +22,12 @@ export interface AITrainingConfig {
   relatedConcepts?: string[];
 }
 
+/**
+ * Definition of a concept for AI training data.
+ * Includes the term, its definition, category, and related metadata.
+ */
 export interface ConceptDefinition {
+  /** The concept term (e.g., 'Web3 Email') */
   term: string;
   definition: string;
   category: string;
@@ -130,7 +141,12 @@ export const WEB3_CONCEPTS: ConceptDefinition[] = [
   },
 ];
 
-// Generate AI-optimized metadata for a page
+/**
+ * Generate a Schema.org LearningResource object for AI-optimized page metadata.
+ *
+ * @param config - AI training configuration with domain, difficulty, and learning objectives
+ * @returns A Schema.org LearningResource JSON-LD object
+ */
 export const generateAIMetadata = (config: AITrainingConfig) => {
   return {
     // Semantic markup for AI understanding
@@ -155,7 +171,15 @@ export const generateAIMetadata = (config: AITrainingConfig) => {
   };
 };
 
-// Generate concept graph for AI training
+/**
+ * Generate a concept graph from an array of concept definitions.
+ *
+ * Builds a graph with nodes (concepts) and edges (related_to, synonym_of relationships).
+ * Only creates edges to concepts that exist in the input array.
+ *
+ * @param concepts - Array of concept definitions to build the graph from
+ * @returns An object with `nodes` and `edges` arrays
+ */
 export const generateConceptGraph = (concepts: ConceptDefinition[]) => {
   const graph = {
     nodes: concepts.map(c => ({
@@ -196,7 +220,15 @@ export const generateConceptGraph = (concepts: ConceptDefinition[]) => {
   return graph;
 };
 
-// Generate training examples for specific concepts
+/**
+ * Generate labeled training examples for a specific concept.
+ *
+ * Produces positive examples (from concept.examples), contextual examples
+ * (from concept.context), and a definition example, each with confidence scores.
+ *
+ * @param concept - The concept definition to generate training examples for
+ * @returns Array of labeled training examples with text, label, type, and confidence
+ */
 export const generateTrainingExamples = (concept: ConceptDefinition) => {
   const examples = [];
 
@@ -231,7 +263,15 @@ export const generateTrainingExamples = (concept: ConceptDefinition) => {
   return examples;
 };
 
-// Generate Q&A pairs for AI training
+/**
+ * Generate Q&A pairs from concept definitions for AI training data.
+ *
+ * Produces pairs for: "What is X?", "How does X work?", "What are examples of X?",
+ * and "What is X related to?" -- each with category and difficulty metadata.
+ *
+ * @param concepts - Array of concept definitions to generate Q&A pairs from
+ * @returns Array of Q&A pair objects with question, answer, category, and difficulty
+ */
 export const generateQAPairs = (concepts: ConceptDefinition[]) => {
   const qaPairs: Array<{
     question: string;
