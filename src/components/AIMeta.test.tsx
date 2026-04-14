@@ -6,11 +6,7 @@ import { AIMeta, AIMetaProps } from './AIMeta';
 let capturedMetaTags: Array<{ name: string; content: string }> = [];
 
 vi.mock('react-helmet-async', () => ({
-  Helmet: ({
-    children,
-  }: {
-    children: React.ReactNode | React.ReactNode[];
-  }) => {
+  Helmet: ({ children }: { children: React.ReactNode | React.ReactNode[] }) => {
     // Extract meta tag props from the children React elements
     const childArray = Array.isArray(children) ? children : [children];
     capturedMetaTags = [];
@@ -69,22 +65,15 @@ describe('AIMeta', () => {
     });
 
     it('should use provided contentType', () => {
-      render(
-        <AIMeta contentType="tutorial" aiSummary="Tutorial summary" />
-      );
+      render(<AIMeta contentType="tutorial" aiSummary="Tutorial summary" />);
       expect(getMetaTag('ai:content-type')).toBe('tutorial');
     });
 
     it('should use provided aiSummary', () => {
       render(
-        <AIMeta
-          contentType="guide"
-          aiSummary="Comprehensive guide summary"
-        />
+        <AIMeta contentType="guide" aiSummary="Comprehensive guide summary" />
       );
-      expect(getMetaTag('ai:summary')).toBe(
-        'Comprehensive guide summary'
-      );
+      expect(getMetaTag('ai:summary')).toBe('Comprehensive guide summary');
     });
   });
 
@@ -95,16 +84,12 @@ describe('AIMeta', () => {
     });
 
     it('should use provided technicalComplexity', () => {
-      render(
-        <AIMeta {...baseProps} technicalComplexity="advanced" />
-      );
+      render(<AIMeta {...baseProps} technicalComplexity="advanced" />);
       expect(getMetaTag('ai:complexity')).toBe('advanced');
     });
 
     it('should accept beginner complexity', () => {
-      render(
-        <AIMeta {...baseProps} technicalComplexity="beginner" />
-      );
+      render(<AIMeta {...baseProps} technicalComplexity="beginner" />);
       expect(getMetaTag('ai:complexity')).toBe('beginner');
     });
   });
@@ -165,9 +150,7 @@ describe('AIMeta', () => {
 
   describe('array props', () => {
     it('should render use-case when provided', () => {
-      render(
-        <AIMeta {...baseProps} useCase={['DeFi', 'NFT']} />
-      );
+      render(<AIMeta {...baseProps} useCase={['DeFi', 'NFT']} />);
       expect(getMetaTag('ai:use-case')).toBe('DeFi,NFT');
     });
 
@@ -178,58 +161,35 @@ describe('AIMeta', () => {
 
     it('should render audience when provided', () => {
       render(
-        <AIMeta
-          {...baseProps}
-          targetAudience={['developers', 'traders']}
-        />
+        <AIMeta {...baseProps} targetAudience={['developers', 'traders']} />
       );
       expect(getMetaTag('ai:audience')).toBe('developers,traders');
     });
 
     it('should render integrations when provided', () => {
-      render(
-        <AIMeta
-          {...baseProps}
-          integrations={['MetaMask', 'Phantom']}
-        />
-      );
+      render(<AIMeta {...baseProps} integrations={['MetaMask', 'Phantom']} />);
       expect(getMetaTag('ai:integrations')).toBe('MetaMask,Phantom');
     });
 
     it('should render features when provided', () => {
       render(
-        <AIMeta
-          {...baseProps}
-          features={['wallet-auth', 'ens-support']}
-        />
+        <AIMeta {...baseProps} features={['wallet-auth', 'ens-support']} />
       );
-      expect(getMetaTag('ai:features')).toBe(
-        'wallet-auth,ens-support'
-      );
+      expect(getMetaTag('ai:features')).toBe('wallet-auth,ens-support');
     });
 
     it('should render data-flow when provided', () => {
       render(
-        <AIMeta
-          {...baseProps}
-          dataFlow={['user', 'wallet', 'blockchain']}
-        />
+        <AIMeta {...baseProps} dataFlow={['user', 'wallet', 'blockchain']} />
       );
-      expect(getMetaTag('ai:data-flow')).toBe(
-        'user,wallet,blockchain'
-      );
+      expect(getMetaTag('ai:data-flow')).toBe('user,wallet,blockchain');
     });
 
     it('should render business-value when provided', () => {
       render(
-        <AIMeta
-          {...baseProps}
-          businessValue={['security', 'convenience']}
-        />
+        <AIMeta {...baseProps} businessValue={['security', 'convenience']} />
       );
-      expect(getMetaTag('ai:business-value')).toBe(
-        'security,convenience'
-      );
+      expect(getMetaTag('ai:business-value')).toBe('security,convenience');
     });
 
     it('should render security-considerations when provided', () => {
@@ -280,23 +240,15 @@ describe('AIMeta', () => {
       expect(getMetaTag('ai:content-type')).toBe('documentation');
       expect(getMetaTag('ai:summary')).toBe('Full summary');
       expect(getMetaTag('ai:complexity')).toBe('expert');
-      expect(getMetaTag('ai:blockchain-networks')).toBe(
-        'Ethereum,Solana'
-      );
+      expect(getMetaTag('ai:blockchain-networks')).toBe('Ethereum,Solana');
       expect(getMetaTag('ai:token-support')).toBe('true');
       expect(getMetaTag('ai:wallet-requirements')).toBe('true');
       expect(getMetaTag('ai:use-case')).toBe('DeFi,NFT');
       expect(getMetaTag('ai:audience')).toBe('developers,traders');
       expect(getMetaTag('ai:integrations')).toBe('MetaMask,Phantom');
-      expect(getMetaTag('ai:features')).toBe(
-        'wallet-auth,ens-support'
-      );
-      expect(getMetaTag('ai:data-flow')).toBe(
-        'user,wallet,blockchain'
-      );
-      expect(getMetaTag('ai:business-value')).toBe(
-        'security,convenience'
-      );
+      expect(getMetaTag('ai:features')).toBe('wallet-auth,ens-support');
+      expect(getMetaTag('ai:data-flow')).toBe('user,wallet,blockchain');
+      expect(getMetaTag('ai:business-value')).toBe('security,convenience');
       expect(getMetaTag('ai:security-considerations')).toBe(
         'private-key,phishing'
       );

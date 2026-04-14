@@ -247,10 +247,10 @@ describe('SemanticHTML Components', () => {
 
   describe('SemanticForm', () => {
     it('should render form element', () => {
-      render(
-        <SemanticForm aria-label="Test form">Form content</SemanticForm>
-      );
-      expect(screen.getByRole('form', { name: 'Test form' })).toBeInTheDocument();
+      render(<SemanticForm aria-label="Test form">Form content</SemanticForm>);
+      expect(
+        screen.getByRole('form', { name: 'Test form' })
+      ).toBeInTheDocument();
     });
   });
 

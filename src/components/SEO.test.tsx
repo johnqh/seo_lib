@@ -131,7 +131,11 @@ describe('SEO', () => {
 
     it('should render array of structured data objects', () => {
       const structuredData = [
-        { '@context': 'https://schema.org', '@type': 'WebPage', name: 'Page 1' },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: 'Page 1',
+        },
         {
           '@context': 'https://schema.org',
           '@type': 'Organization',

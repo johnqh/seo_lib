@@ -114,9 +114,7 @@ describe('advancedSEO utilities', () => {
     it('should use provided pathname', () => {
       const schema = createTechnicalArticleSchema(mockConfig);
 
-      expect(schema.mainEntityOfPage['@id']).toBe(
-        'https://test.com/test-page'
-      );
+      expect(schema.mainEntityOfPage['@id']).toBe('https://test.com/test-page');
     });
   });
 
@@ -297,7 +295,10 @@ describe('advancedSEO utilities', () => {
     });
 
     it('should default reading time to 5 min', () => {
-      const configWithoutReadingTime = { ...mockConfig, readingTime: undefined };
+      const configWithoutReadingTime = {
+        ...mockConfig,
+        readingTime: undefined,
+      };
       const tc = createEnhancedTwitterCard(configWithoutReadingTime);
 
       expect(tc['twitter:data2']).toBe('5 min');
