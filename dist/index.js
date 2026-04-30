@@ -344,6 +344,8 @@ function useSEOUpdate({
     setMeta("name", "description", description);
     setMeta("property", "og:title", fullTitle);
     setMeta("property", "og:description", description);
+    setMeta("name", "twitter:title", fullTitle);
+    setMeta("name", "twitter:description", description);
     if (keywords) {
       setMeta("name", "keywords", keywords);
     }
