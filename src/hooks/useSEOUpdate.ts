@@ -25,6 +25,8 @@ export interface UseSEOUpdateOptions {
   keywords?: string;
   /** Open Graph image URL. */
   ogImage?: string;
+  /** Canonical URL for the page. */
+  canonical?: string;
 }
 
 /**
@@ -51,6 +53,7 @@ export function useSEOUpdate({
   appName,
   keywords,
   ogImage,
+  canonical,
 }: UseSEOUpdateOptions): void {
   useEffect(() => {
     const fullTitle = appName ? `${title} | ${appName}` : title;
@@ -69,6 +72,19 @@ export function useSEOUpdate({
       el.setAttribute('data-rh', 'true');
     };
 
+    const setLink = (rel: string, href: string) => {
+      let el = document.querySelector(
+        `link[rel="${rel}"]`
+      ) as HTMLLinkElement | null;
+      if (!el) {
+        el = document.createElement('link');
+        el.rel = rel;
+        document.head.appendChild(el);
+      }
+      el.href = href;
+      el.setAttribute('data-rh', 'true');
+    };
+
     setMeta('name', 'description', description);
     setMeta('property', 'og:title', fullTitle);
     setMeta('property', 'og:description', description);
@@ -82,5 +98,9 @@ export function useSEOUpdate({
     if (ogImage) {
       setMeta('property', 'og:image', ogImage);
     }
-  }, [title, description, appName, keywords, ogImage]);
+    if (canonical) {
+      setLink('canonical', canonical);
+      setMeta('property', 'og:url', canonical);
+    }
+  }, [title, description, appName, keywords, ogImage, canonical]);
 }
