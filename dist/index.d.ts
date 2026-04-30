@@ -3,4 +3,5 @@
  * SEO and AEO components and utilities for React applications
  */
 export * from './components';
+export * from './hooks';
 export * from './utils';

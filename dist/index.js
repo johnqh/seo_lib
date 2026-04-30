@@ -1,6 +1,6 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { Helmet } from "react-helmet-async";
-import React, { useId } from "react";
+import React, { useId, useEffect } from "react";
 const SEO = ({
   title,
   description,
@@ -319,6 +319,39 @@ const AITrainingEnhancer = ({
 }) => {
   return /* @__PURE__ */ jsx(Fragment, { children });
 };
+function useSEOUpdate({
+  title,
+  description,
+  appName,
+  keywords,
+  ogImage
+}) {
+  useEffect(() => {
+    const fullTitle = appName ? `${title} | ${appName}` : title;
+    document.title = fullTitle;
+    const setMeta = (attr, key, content) => {
+      let el = document.querySelector(
+        `meta[${attr}="${key}"]`
+      );
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+      el.setAttribute("data-rh", "true");
+    };
+    setMeta("name", "description", description);
+    setMeta("property", "og:title", fullTitle);
+    setMeta("property", "og:description", description);
+    if (keywords) {
+      setMeta("name", "keywords", keywords);
+    }
+    if (ogImage) {
+      setMeta("property", "og:image", ogImage);
+    }
+  }, [title, description, appName, keywords, ogImage]);
+}
 const getCurrentPathname = (pathname) => {
   if (pathname) return pathname;
   if (typeof window !== "undefined" && window.location) {
@@ -1208,6 +1241,7 @@ export {
   generateQAPairs,
   generateTrainingExamples,
   pageSEOConfigs,
+  useSEOUpdate,
   validateHeadingStructure
 };
 //# sourceMappingURL=index.js.map
