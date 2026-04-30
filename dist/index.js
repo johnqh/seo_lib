@@ -1,6 +1,6 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { Helmet } from "react-helmet-async";
-import React, { useId, useEffect } from "react";
+import React, { useId, useEffect, useRef } from "react";
 const SEO = ({
   title,
   description,
@@ -330,7 +330,7 @@ function useSEOUpdate({
   useEffect(() => {
     const fullTitle = appName ? `${title} | ${appName}` : title;
     document.title = fullTitle;
-    const setMeta = (attr, key, content) => {
+    const setMeta2 = (attr, key, content) => {
       let el = document.querySelector(
         `meta[${attr}="${key}"]`
       );
@@ -342,7 +342,7 @@ function useSEOUpdate({
       el.setAttribute("content", content);
       el.setAttribute("data-rh", "true");
     };
-    const setLink = (rel, href) => {
+    const setLink2 = (rel, href) => {
       let el = document.querySelector(
         `link[rel="${rel}"]`
       );
@@ -354,23 +354,134 @@ function useSEOUpdate({
       el.href = href;
       el.setAttribute("data-rh", "true");
     };
-    setMeta("name", "description", description);
-    setMeta("property", "og:title", fullTitle);
-    setMeta("property", "og:description", description);
-    setMeta("property", "og:image:alt", fullTitle);
-    setMeta("name", "twitter:title", fullTitle);
-    setMeta("name", "twitter:description", description);
+    setMeta2("name", "description", description);
+    setMeta2("property", "og:title", fullTitle);
+    setMeta2("property", "og:description", description);
+    setMeta2("property", "og:image:alt", fullTitle);
+    setMeta2("name", "twitter:title", fullTitle);
+    setMeta2("name", "twitter:description", description);
     if (keywords) {
-      setMeta("name", "keywords", keywords);
+      setMeta2("name", "keywords", keywords);
     }
     if (ogImage) {
-      setMeta("property", "og:image", ogImage);
+      setMeta2("property", "og:image", ogImage);
     }
     if (canonical) {
-      setLink("canonical", canonical);
-      setMeta("property", "og:url", canonical);
+      setLink2("canonical", canonical);
+      setMeta2("property", "og:url", canonical);
     }
   }, [title, description, appName, keywords, ogImage, canonical]);
+}
+function setMeta(attr, key, content) {
+  let el = document.querySelector(`meta[${attr}="${key}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+  el.setAttribute("data-rh", "true");
+}
+function setLink(rel, href, attrs) {
+  const selector = `link[rel="${rel}"]`;
+  let el = document.querySelector(selector);
+  if (!el) {
+    el = document.createElement("link");
+    el.rel = rel;
+    document.head.appendChild(el);
+  }
+  el.href = href;
+  el.setAttribute("data-rh", "true");
+  return el;
+}
+function usePageSEO(data, config) {
+  const {
+    title,
+    description,
+    keywords,
+    canonical,
+    lang,
+    pathWithoutLang,
+    ogType = "website",
+    noIndex = false,
+    structuredData
+  } = data;
+  const {
+    appName,
+    baseUrl,
+    defaultOgImage,
+    twitterHandle,
+    supportedLanguages,
+    defaultLanguage
+  } = config;
+  const hreflangRef = useRef([]);
+  useEffect(() => {
+    document.title = title;
+    setMeta("name", "description", description);
+    setMeta("name", "robots", noIndex ? "noindex, nofollow" : "index, follow");
+    if (keywords && keywords.length > 0) {
+      setMeta("name", "keywords", keywords.join(", "));
+    }
+    setMeta("property", "og:type", ogType);
+    setMeta("property", "og:site_name", appName);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", description);
+    setMeta("property", "og:url", canonical);
+    setMeta("property", "og:image", defaultOgImage);
+    setMeta("property", "og:image:alt", title);
+    setMeta("property", "og:locale", lang);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:image", defaultOgImage);
+    if (twitterHandle) {
+      setMeta("name", "twitter:site", `@${twitterHandle}`);
+    }
+  }, [title, description, keywords, canonical, lang, ogType, noIndex, appName, defaultOgImage, twitterHandle]);
+  useEffect(() => {
+    setLink("canonical", canonical);
+  }, [canonical]);
+  useEffect(() => {
+    for (const el of hreflangRef.current) {
+      el.remove();
+    }
+    const elements = [];
+    for (const lng of supportedLanguages) {
+      const href = `${baseUrl}/${lng}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
+      const el = document.createElement("link");
+      el.rel = "alternate";
+      el.hreflang = lng;
+      el.href = href;
+      el.setAttribute("data-rh", "true");
+      document.head.appendChild(el);
+      elements.push(el);
+    }
+    const xDefault = document.createElement("link");
+    xDefault.rel = "alternate";
+    xDefault.hreflang = "x-default";
+    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
+    xDefault.setAttribute("data-rh", "true");
+    document.head.appendChild(xDefault);
+    elements.push(xDefault);
+    hreflangRef.current = elements;
+    return () => {
+      for (const el of elements) {
+        el.remove();
+      }
+    };
+  }, [baseUrl, pathWithoutLang, supportedLanguages, defaultLanguage]);
+  const schemasJson = JSON.stringify(structuredData ?? []);
+  useEffect(() => {
+    document.querySelectorAll("script[data-seo-managed]").forEach((el) => el.remove());
+    if (!structuredData || structuredData.length === 0) return;
+    for (const schema of structuredData) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-seo-managed", "true");
+      script.textContent = JSON.stringify(schema);
+      document.head.appendChild(script);
+    }
+  }, [schemasJson]);
 }
 const getCurrentPathname = (pathname) => {
   if (pathname) return pathname;
@@ -1261,6 +1372,7 @@ export {
   generateQAPairs,
   generateTrainingExamples,
   pageSEOConfigs,
+  usePageSEO,
   useSEOUpdate,
   validateHeadingStructure
 };
