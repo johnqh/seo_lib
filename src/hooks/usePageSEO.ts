@@ -67,7 +67,9 @@ export interface PageSEOConfig {
 }
 
 function setMeta(attr: string, key: string, content: string): void {
-  let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+  let el = document.querySelector(
+    `meta[${attr}="${key}"]`
+  ) as HTMLMetaElement | null;
   if (!el) {
     el = document.createElement('meta');
     el.setAttribute(attr, key);
@@ -77,9 +79,15 @@ function setMeta(attr: string, key: string, content: string): void {
   el.setAttribute('data-rh', 'true');
 }
 
-function setLink(rel: string, href: string, attrs?: Record<string, string>): HTMLLinkElement {
+function setLink(
+  rel: string,
+  href: string,
+  attrs?: Record<string, string>
+): HTMLLinkElement {
   const selector = attrs
-    ? `link[rel="${rel}"][${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join('][')}]`
+    ? `link[rel="${rel}"][${Object.entries(attrs)
+        .map(([k, v]) => `${k}="${v}"`)
+        .join('][')}]`
     : `link[rel="${rel}"]`;
   let el = document.querySelector(selector) as HTMLLinkElement | null;
   if (!el) {
@@ -154,7 +162,18 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     if (twitterHandle) {
       setMeta('name', 'twitter:site', `@${twitterHandle}`);
     }
-  }, [title, description, keywords, canonical, lang, ogType, noIndex, appName, defaultOgImage, twitterHandle]);
+  }, [
+    title,
+    description,
+    keywords,
+    canonical,
+    lang,
+    ogType,
+    noIndex,
+    appName,
+    defaultOgImage,
+    twitterHandle,
+  ]);
 
   // Canonical link
   useEffect(() => {
@@ -203,7 +222,9 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
   const schemasJson = JSON.stringify(structuredData ?? []);
   useEffect(() => {
     // Remove all previous managed structured data scripts
-    document.querySelectorAll('script[data-seo-managed]').forEach(el => el.remove());
+    document
+      .querySelectorAll('script[data-seo-managed]')
+      .forEach(el => el.remove());
 
     if (!structuredData || structuredData.length === 0) return;
 
@@ -214,5 +235,5 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
       script.textContent = JSON.stringify(schema);
       document.head.appendChild(script);
     }
-  }, [schemasJson]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [schemasJson]);
 }

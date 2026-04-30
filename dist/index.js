@@ -373,7 +373,9 @@ function useSEOUpdate({
   }, [title, description, appName, keywords, ogImage, canonical]);
 }
 function setMeta(attr, key, content) {
-  let el = document.querySelector(`meta[${attr}="${key}"]`);
+  let el = document.querySelector(
+    `meta[${attr}="${key}"]`
+  );
   if (!el) {
     el = document.createElement("meta");
     el.setAttribute(attr, key);
@@ -437,7 +439,18 @@ function usePageSEO(data, config) {
     if (twitterHandle) {
       setMeta("name", "twitter:site", `@${twitterHandle}`);
     }
-  }, [title, description, keywords, canonical, lang, ogType, noIndex, appName, defaultOgImage, twitterHandle]);
+  }, [
+    title,
+    description,
+    keywords,
+    canonical,
+    lang,
+    ogType,
+    noIndex,
+    appName,
+    defaultOgImage,
+    twitterHandle
+  ]);
   useEffect(() => {
     setLink("canonical", canonical);
   }, [canonical]);
