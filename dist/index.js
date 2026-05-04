@@ -1,6 +1,8 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { Helmet } from "react-helmet-async";
-import React, { useId, useEffect, useRef } from "react";
+import React, { useRef, useEffect, createContext, useContext, useMemo, useId } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 const SEO = ({
   title,
   description,
@@ -54,6 +56,228 @@ const SEO = ({
     structuredDataArray.map((data, index) => /* @__PURE__ */ jsx("script", { type: "application/ld+json", children: JSON.stringify(data) }, index))
   ] });
 };
+function setMeta(attr, key, content) {
+  let el = document.querySelector(
+    `meta[${attr}="${key}"]`
+  );
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+  el.setAttribute("data-rh", "true");
+}
+function setLink(rel, href, attrs) {
+  const selector = `link[rel="${rel}"]`;
+  let el = document.querySelector(selector);
+  if (!el) {
+    el = document.createElement("link");
+    el.rel = rel;
+    document.head.appendChild(el);
+  }
+  el.href = href;
+  el.setAttribute("data-rh", "true");
+  return el;
+}
+function usePageSEO(data, config) {
+  const {
+    title,
+    description,
+    keywords,
+    canonical,
+    lang,
+    pathWithoutLang,
+    ogType = "website",
+    noIndex = false,
+    structuredData
+  } = data;
+  const {
+    appName,
+    baseUrl,
+    defaultOgImage,
+    twitterHandle,
+    supportedLanguages,
+    defaultLanguage
+  } = config;
+  const hreflangRef = useRef([]);
+  useEffect(() => {
+    document.title = title;
+    setMeta("name", "description", description);
+    setMeta("name", "robots", noIndex ? "noindex, nofollow" : "index, follow");
+    if (keywords && keywords.length > 0) {
+      setMeta("name", "keywords", keywords.join(", "));
+    }
+    setMeta("property", "og:type", ogType);
+    setMeta("property", "og:site_name", appName);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", description);
+    setMeta("property", "og:url", canonical);
+    setMeta("property", "og:image", defaultOgImage);
+    setMeta("property", "og:image:alt", title);
+    setMeta("property", "og:locale", lang);
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:image", defaultOgImage);
+    if (twitterHandle) {
+      setMeta("name", "twitter:site", `@${twitterHandle}`);
+    }
+  }, [
+    title,
+    description,
+    keywords,
+    canonical,
+    lang,
+    ogType,
+    noIndex,
+    appName,
+    defaultOgImage,
+    twitterHandle
+  ]);
+  useEffect(() => {
+    setLink("canonical", canonical);
+  }, [canonical]);
+  useEffect(() => {
+    for (const el of hreflangRef.current) {
+      el.remove();
+    }
+    const elements = [];
+    for (const lng of supportedLanguages) {
+      const href = `${baseUrl}/${lng}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
+      const el = document.createElement("link");
+      el.rel = "alternate";
+      el.hreflang = lng;
+      el.href = href;
+      el.setAttribute("data-rh", "true");
+      document.head.appendChild(el);
+      elements.push(el);
+    }
+    const xDefault = document.createElement("link");
+    xDefault.rel = "alternate";
+    xDefault.hreflang = "x-default";
+    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
+    xDefault.setAttribute("data-rh", "true");
+    document.head.appendChild(xDefault);
+    elements.push(xDefault);
+    hreflangRef.current = elements;
+    return () => {
+      for (const el of elements) {
+        el.remove();
+      }
+    };
+  }, [baseUrl, pathWithoutLang, supportedLanguages, defaultLanguage]);
+  const schemasJson = JSON.stringify(structuredData ?? []);
+  useEffect(() => {
+    document.querySelectorAll("script[data-seo-managed]").forEach((el) => el.remove());
+    if (!structuredData || structuredData.length === 0) return;
+    for (const schema of structuredData) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-seo-managed", "true");
+      script.textContent = JSON.stringify(schema);
+      document.head.appendChild(script);
+    }
+  }, [schemasJson]);
+}
+function isNonProductionHost() {
+  if (typeof window === "undefined") return false;
+  const hostname = window.location.hostname;
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname.includes("preview") || hostname.includes("staging") || hostname.includes("dev") || hostname.endsWith(".pages.dev") || hostname.endsWith(".vercel.app");
+}
+const SEOHeadConfigContext = createContext(null);
+function useSEOHeadConfig() {
+  const config = useContext(SEOHeadConfigContext);
+  if (!config) {
+    throw new Error("SEOHead must be used within a <SEOHeadProvider>");
+  }
+  return config;
+}
+function SEOHeadProvider({
+  config,
+  children
+}) {
+  return /* @__PURE__ */ jsx(SEOHeadConfigContext.Provider, { value: config, children });
+}
+function SEOHead({
+  title,
+  description,
+  keywords,
+  ogType = "website",
+  noIndex = false,
+  structuredData
+}) {
+  const config = useSEOHeadConfig();
+  const { i18n } = useTranslation();
+  const location = useLocation();
+  const lang = i18n.language || "en";
+  const {
+    baseUrl,
+    appName,
+    defaultOgImage,
+    twitterHandle,
+    supportedLanguages,
+    defaultLanguage,
+    applicationCategory,
+    applicationSubCategory,
+    howtoNamespace = "howto"
+  } = config;
+  const urlLangMatch = location.pathname.match(/^\/([a-z]{2}(-[a-z]+)?)(\/|$)/);
+  const urlLang = urlLangMatch ? urlLangMatch[1] : lang;
+  const pathWithoutLang = location.pathname.replace(
+    /^\/[a-z]{2}(-[a-z]+)?\//,
+    "/"
+  );
+  const canonical = `${baseUrl}/${urlLang}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
+  const shouldNoIndex = noIndex || isNonProductionHost();
+  const { t: tHowTo } = useTranslation(howtoNamespace);
+  const webAppSchema = useMemo(
+    () => ({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: appName,
+      url: baseUrl,
+      applicationCategory,
+      ...applicationSubCategory ? { applicationSubCategory } : {},
+      description: tHowTo("webApp.description"),
+      operatingSystem: "Web",
+      dateModified: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      featureList: (() => {
+        const raw = tHowTo("webApp.features", { returnObjects: true });
+        return Array.isArray(raw) ? raw : [];
+      })()
+    }),
+    [appName, baseUrl, applicationCategory, applicationSubCategory, tHowTo]
+  );
+  const pageSchemas = structuredData ? Array.isArray(structuredData) ? structuredData : [structuredData] : [];
+  const schemas = useMemo(
+    () => [webAppSchema, ...pageSchemas],
+    [webAppSchema, JSON.stringify(pageSchemas)]
+  );
+  usePageSEO(
+    {
+      title,
+      description,
+      keywords: Array.isArray(keywords) ? keywords : void 0,
+      canonical,
+      lang: urlLang,
+      pathWithoutLang,
+      ogType,
+      noIndex: shouldNoIndex,
+      structuredData: schemas
+    },
+    {
+      appName,
+      baseUrl,
+      defaultOgImage,
+      twitterHandle,
+      supportedLanguages,
+      defaultLanguage
+    }
+  );
+  return null;
+}
 const AIMeta = ({
   contentType,
   aiSummary,
@@ -371,130 +595,6 @@ function useSEOUpdate({
       setMeta2("property", "og:url", canonical);
     }
   }, [title, description, appName, keywords, ogImage, canonical]);
-}
-function setMeta(attr, key, content) {
-  let el = document.querySelector(
-    `meta[${attr}="${key}"]`
-  );
-  if (!el) {
-    el = document.createElement("meta");
-    el.setAttribute(attr, key);
-    document.head.appendChild(el);
-  }
-  el.setAttribute("content", content);
-  el.setAttribute("data-rh", "true");
-}
-function setLink(rel, href, attrs) {
-  const selector = `link[rel="${rel}"]`;
-  let el = document.querySelector(selector);
-  if (!el) {
-    el = document.createElement("link");
-    el.rel = rel;
-    document.head.appendChild(el);
-  }
-  el.href = href;
-  el.setAttribute("data-rh", "true");
-  return el;
-}
-function usePageSEO(data, config) {
-  const {
-    title,
-    description,
-    keywords,
-    canonical,
-    lang,
-    pathWithoutLang,
-    ogType = "website",
-    noIndex = false,
-    structuredData
-  } = data;
-  const {
-    appName,
-    baseUrl,
-    defaultOgImage,
-    twitterHandle,
-    supportedLanguages,
-    defaultLanguage
-  } = config;
-  const hreflangRef = useRef([]);
-  useEffect(() => {
-    document.title = title;
-    setMeta("name", "description", description);
-    setMeta("name", "robots", noIndex ? "noindex, nofollow" : "index, follow");
-    if (keywords && keywords.length > 0) {
-      setMeta("name", "keywords", keywords.join(", "));
-    }
-    setMeta("property", "og:type", ogType);
-    setMeta("property", "og:site_name", appName);
-    setMeta("property", "og:title", title);
-    setMeta("property", "og:description", description);
-    setMeta("property", "og:url", canonical);
-    setMeta("property", "og:image", defaultOgImage);
-    setMeta("property", "og:image:alt", title);
-    setMeta("property", "og:locale", lang);
-    setMeta("name", "twitter:card", "summary_large_image");
-    setMeta("name", "twitter:title", title);
-    setMeta("name", "twitter:description", description);
-    setMeta("name", "twitter:image", defaultOgImage);
-    if (twitterHandle) {
-      setMeta("name", "twitter:site", `@${twitterHandle}`);
-    }
-  }, [
-    title,
-    description,
-    keywords,
-    canonical,
-    lang,
-    ogType,
-    noIndex,
-    appName,
-    defaultOgImage,
-    twitterHandle
-  ]);
-  useEffect(() => {
-    setLink("canonical", canonical);
-  }, [canonical]);
-  useEffect(() => {
-    for (const el of hreflangRef.current) {
-      el.remove();
-    }
-    const elements = [];
-    for (const lng of supportedLanguages) {
-      const href = `${baseUrl}/${lng}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
-      const el = document.createElement("link");
-      el.rel = "alternate";
-      el.hreflang = lng;
-      el.href = href;
-      el.setAttribute("data-rh", "true");
-      document.head.appendChild(el);
-      elements.push(el);
-    }
-    const xDefault = document.createElement("link");
-    xDefault.rel = "alternate";
-    xDefault.hreflang = "x-default";
-    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
-    xDefault.setAttribute("data-rh", "true");
-    document.head.appendChild(xDefault);
-    elements.push(xDefault);
-    hreflangRef.current = elements;
-    return () => {
-      for (const el of elements) {
-        el.remove();
-      }
-    };
-  }, [baseUrl, pathWithoutLang, supportedLanguages, defaultLanguage]);
-  const schemasJson = JSON.stringify(structuredData ?? []);
-  useEffect(() => {
-    document.querySelectorAll("script[data-seo-managed]").forEach((el) => el.remove());
-    if (!structuredData || structuredData.length === 0) return;
-    for (const schema of structuredData) {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.setAttribute("data-seo-managed", "true");
-      script.textContent = JSON.stringify(schema);
-      document.head.appendChild(script);
-    }
-  }, [schemasJson]);
 }
 const getCurrentPathname = (pathname) => {
   if (pathname) return pathname;
@@ -1339,6 +1439,20 @@ const AI_TRAINING_CONFIGS = {
     ]
   }
 };
+function buildHowToSchema(name, description, steps) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name,
+    description,
+    step: steps.map((step, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: step.name,
+      text: step.text
+    }))
+  };
+}
 export {
   AIMeta,
   AITrainingEnhancer,
@@ -1358,6 +1472,8 @@ export {
   Nav,
   OrderedList,
   SEO,
+  SEOHead,
+  SEOHeadProvider,
   ScreenReaderOnly,
   SearchRegion,
   Section,
@@ -1371,6 +1487,7 @@ export {
   WEB3_CONCEPTS,
   WEB3_EMAIL_HEADINGS,
   WEB3_HEADING_PATTERNS,
+  buildHowToSchema,
   createAIMetaTags,
   createAIOptimizedSchema,
   createEnhancedFAQSchema,
@@ -1384,8 +1501,10 @@ export {
   generateConceptGraph,
   generateQAPairs,
   generateTrainingExamples,
+  isNonProductionHost,
   pageSEOConfigs,
   usePageSEO,
+  useSEOHeadConfig,
   useSEOUpdate,
   validateHeadingStructure
 };

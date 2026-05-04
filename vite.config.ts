@@ -28,6 +28,9 @@ export default defineConfig({
         'react-dom',
         'react/jsx-runtime',
         'react-helmet-async',
+        'react-i18next',
+        'i18next',
+        'react-router-dom',
       ],
       output: {
         globals: {
