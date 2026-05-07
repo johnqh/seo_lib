@@ -617,27 +617,18 @@ const getBranding = (config) => {
     emailDomain: config.emailDomain || "example.com"
   };
 };
-const createWeb3ProductSchema = (config) => {
+const createWebApplicationSchema = (config) => {
   const audienceArray = ensureArray(config.audience);
   const branding = getBranding(config.branding);
   return {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": "WebApplication",
     name: branding.appName,
     applicationCategory: "CommunicationApplication",
-    operatingSystem: "Web Browser",
+    operatingSystem: "Web",
+    browserRequirements: "Requires a modern browser with Web3 wallet extension",
     description: config.description,
     url: branding.baseUrl,
-    downloadUrl: `${branding.baseUrl}/connect`,
-    installUrl: `${branding.baseUrl}/connect`,
-    screenshot: `${branding.baseUrl}/screenshots/app-preview.jpg`,
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "2500",
-      bestRating: "5",
-      worstRating: "1"
-    },
     offers: [
       {
         "@type": "Offer",
@@ -653,7 +644,6 @@ const createWeb3ProductSchema = (config) => {
         description: "Advanced features with ENS/SNS domains and priority support",
         price: "2.00",
         priceCurrency: "USD",
-        billingIncrement: "month",
         availability: "https://schema.org/InStock"
       }
     ],
@@ -682,30 +672,10 @@ const createWeb3ProductSchema = (config) => {
     },
     datePublished: "2024-01-01",
     dateModified: config.lastUpdated?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
-    version: "1.0",
-    softwareRequirements: "Web3 Wallet (MetaMask, Phantom, etc.)",
-    storageRequirements: "5MB",
-    memoryRequirements: "512MB RAM",
-    supportingData: {
-      blockchainNetworks: [
-        "Ethereum",
-        "Solana",
-        "Polygon",
-        "Arbitrum",
-        "Optimism"
-      ],
-      supportedWallets: [
-        "MetaMask",
-        "Phantom",
-        "WalletConnect",
-        "Coinbase Wallet"
-      ],
-      smartContractSupport: true,
-      ensCompatible: true,
-      snsCompatible: true
-    }
+    softwareRequirements: "Web3 Wallet (MetaMask, Phantom, etc.)"
   };
 };
+const createWeb3ProductSchema = createWebApplicationSchema;
 const createTechnicalArticleSchema = (config) => {
   const keywordsArray = ensureArray(config.keywords);
   const audienceArray = ensureArray(config.audience);
@@ -947,7 +917,7 @@ const createAIMetaTags = (config) => {
 };
 const generateAdvancedSEO = (config) => ({
   structuredData: {
-    product: createWeb3ProductSchema(config),
+    webApplication: createWebApplicationSchema(config),
     article: createTechnicalArticleSchema(config),
     aiOptimized: createAIOptimizedSchema(config)
   },
@@ -955,7 +925,7 @@ const generateAdvancedSEO = (config) => ({
   twitterCard: createEnhancedTwitterCard(config),
   aiMetaTags: createAIMetaTags(config),
   jsonLD: [
-    createWeb3ProductSchema(config),
+    createWebApplicationSchema(config),
     createTechnicalArticleSchema(config),
     createAIOptimizedSchema(config)
   ]
@@ -1496,6 +1466,7 @@ export {
   createSemanticHeading,
   createTechnicalArticleSchema,
   createWeb3ProductSchema,
+  createWebApplicationSchema,
   generateAIMetadata,
   generateAdvancedSEO,
   generateConceptGraph,

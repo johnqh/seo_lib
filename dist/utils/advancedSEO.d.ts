@@ -36,49 +36,32 @@ export interface AdvancedSEOConfig {
     pathname?: string;
 }
 /**
- * Generate a Schema.org SoftwareApplication schema for a Web3 product.
+ * Generate a Schema.org WebApplication schema for a Web3 software service.
  *
  * Includes offers, feature lists, blockchain network support, wallet compatibility,
- * and audience targeting.
+ * and audience targeting. Designed for SaaS/web-based services rather than
+ * downloadable products.
  *
  * @param config - Advanced SEO configuration with branding and content details
- * @returns A Schema.org SoftwareApplication JSON-LD object
+ * @returns A Schema.org WebApplication JSON-LD object
  */
-export declare const createWeb3ProductSchema: (config: AdvancedSEOConfig) => {
+export declare const createWebApplicationSchema: (config: AdvancedSEOConfig) => {
     '@context': string;
     '@type': string;
     name: string;
     applicationCategory: string;
     operatingSystem: string;
+    browserRequirements: string;
     description: string;
     url: string;
-    downloadUrl: string;
-    installUrl: string;
-    screenshot: string;
-    aggregateRating: {
-        '@type': string;
-        ratingValue: string;
-        reviewCount: string;
-        bestRating: string;
-        worstRating: string;
-    };
-    offers: ({
+    offers: {
         '@type': string;
         name: string;
         description: string;
         price: string;
         priceCurrency: string;
         availability: string;
-        billingIncrement?: undefined;
-    } | {
-        '@type': string;
-        name: string;
-        description: string;
-        price: string;
-        priceCurrency: string;
-        billingIncrement: string;
-        availability: string;
-    })[];
+    }[];
     featureList: string[];
     applicationSubCategory: string;
     audience: {
@@ -93,17 +76,41 @@ export declare const createWeb3ProductSchema: (config: AdvancedSEOConfig) => {
     };
     datePublished: string;
     dateModified: string;
-    version: string;
     softwareRequirements: string;
-    storageRequirements: string;
-    memoryRequirements: string;
-    supportingData: {
-        blockchainNetworks: string[];
-        supportedWallets: string[];
-        smartContractSupport: boolean;
-        ensCompatible: boolean;
-        snsCompatible: boolean;
+};
+/** @deprecated Use createWebApplicationSchema instead */
+export declare const createWeb3ProductSchema: (config: AdvancedSEOConfig) => {
+    '@context': string;
+    '@type': string;
+    name: string;
+    applicationCategory: string;
+    operatingSystem: string;
+    browserRequirements: string;
+    description: string;
+    url: string;
+    offers: {
+        '@type': string;
+        name: string;
+        description: string;
+        price: string;
+        priceCurrency: string;
+        availability: string;
+    }[];
+    featureList: string[];
+    applicationSubCategory: string;
+    audience: {
+        '@type': string;
+        audienceType: string;
+        geographicArea: string;
     };
+    creator: {
+        '@type': string;
+        name: string;
+        url: string;
+    };
+    datePublished: string;
+    dateModified: string;
+    softwareRequirements: string;
 };
 /**
  * Generate a Schema.org TechnicalArticle schema for guides and documentation.
@@ -335,41 +342,23 @@ export declare const createAIMetaTags: (config: AdvancedSEOConfig) => {
  */
 export declare const generateAdvancedSEO: (config: AdvancedSEOConfig) => {
     structuredData: {
-        product: {
+        webApplication: {
             '@context': string;
             '@type': string;
             name: string;
             applicationCategory: string;
             operatingSystem: string;
+            browserRequirements: string;
             description: string;
             url: string;
-            downloadUrl: string;
-            installUrl: string;
-            screenshot: string;
-            aggregateRating: {
-                '@type': string;
-                ratingValue: string;
-                reviewCount: string;
-                bestRating: string;
-                worstRating: string;
-            };
-            offers: ({
+            offers: {
                 '@type': string;
                 name: string;
                 description: string;
                 price: string;
                 priceCurrency: string;
                 availability: string;
-                billingIncrement?: undefined;
-            } | {
-                '@type': string;
-                name: string;
-                description: string;
-                price: string;
-                priceCurrency: string;
-                billingIncrement: string;
-                availability: string;
-            })[];
+            }[];
             featureList: string[];
             applicationSubCategory: string;
             audience: {
@@ -384,17 +373,7 @@ export declare const generateAdvancedSEO: (config: AdvancedSEOConfig) => {
             };
             datePublished: string;
             dateModified: string;
-            version: string;
             softwareRequirements: string;
-            storageRequirements: string;
-            memoryRequirements: string;
-            supportingData: {
-                blockchainNetworks: string[];
-                supportedWallets: string[];
-                smartContractSupport: boolean;
-                ensCompatible: boolean;
-                snsCompatible: boolean;
-            };
         };
         article: {
             '@context': string;
@@ -547,35 +526,17 @@ export declare const generateAdvancedSEO: (config: AdvancedSEOConfig) => {
         name: string;
         applicationCategory: string;
         operatingSystem: string;
+        browserRequirements: string;
         description: string;
         url: string;
-        downloadUrl: string;
-        installUrl: string;
-        screenshot: string;
-        aggregateRating: {
-            '@type': string;
-            ratingValue: string;
-            reviewCount: string;
-            bestRating: string;
-            worstRating: string;
-        };
-        offers: ({
+        offers: {
             '@type': string;
             name: string;
             description: string;
             price: string;
             priceCurrency: string;
             availability: string;
-            billingIncrement?: undefined;
-        } | {
-            '@type': string;
-            name: string;
-            description: string;
-            price: string;
-            priceCurrency: string;
-            billingIncrement: string;
-            availability: string;
-        })[];
+        }[];
         featureList: string[];
         applicationSubCategory: string;
         audience: {
@@ -590,17 +551,7 @@ export declare const generateAdvancedSEO: (config: AdvancedSEOConfig) => {
         };
         datePublished: string;
         dateModified: string;
-        version: string;
         softwareRequirements: string;
-        storageRequirements: string;
-        memoryRequirements: string;
-        supportingData: {
-            blockchainNetworks: string[];
-            supportedWallets: string[];
-            smartContractSupport: boolean;
-            ensCompatible: boolean;
-            snsCompatible: boolean;
-        };
     } | {
         '@context': string;
         '@type': string;
@@ -731,41 +682,23 @@ export declare const pageSEOConfigs: {
 declare const _default: {
     generateAdvancedSEO: (config: AdvancedSEOConfig) => {
         structuredData: {
-            product: {
+            webApplication: {
                 '@context': string;
                 '@type': string;
                 name: string;
                 applicationCategory: string;
                 operatingSystem: string;
+                browserRequirements: string;
                 description: string;
                 url: string;
-                downloadUrl: string;
-                installUrl: string;
-                screenshot: string;
-                aggregateRating: {
-                    '@type': string;
-                    ratingValue: string;
-                    reviewCount: string;
-                    bestRating: string;
-                    worstRating: string;
-                };
-                offers: ({
+                offers: {
                     '@type': string;
                     name: string;
                     description: string;
                     price: string;
                     priceCurrency: string;
                     availability: string;
-                    billingIncrement?: undefined;
-                } | {
-                    '@type': string;
-                    name: string;
-                    description: string;
-                    price: string;
-                    priceCurrency: string;
-                    billingIncrement: string;
-                    availability: string;
-                })[];
+                }[];
                 featureList: string[];
                 applicationSubCategory: string;
                 audience: {
@@ -780,17 +713,7 @@ declare const _default: {
                 };
                 datePublished: string;
                 dateModified: string;
-                version: string;
                 softwareRequirements: string;
-                storageRequirements: string;
-                memoryRequirements: string;
-                supportingData: {
-                    blockchainNetworks: string[];
-                    supportedWallets: string[];
-                    smartContractSupport: boolean;
-                    ensCompatible: boolean;
-                    snsCompatible: boolean;
-                };
             };
             article: {
                 '@context': string;
@@ -943,35 +866,17 @@ declare const _default: {
             name: string;
             applicationCategory: string;
             operatingSystem: string;
+            browserRequirements: string;
             description: string;
             url: string;
-            downloadUrl: string;
-            installUrl: string;
-            screenshot: string;
-            aggregateRating: {
-                '@type': string;
-                ratingValue: string;
-                reviewCount: string;
-                bestRating: string;
-                worstRating: string;
-            };
-            offers: ({
+            offers: {
                 '@type': string;
                 name: string;
                 description: string;
                 price: string;
                 priceCurrency: string;
                 availability: string;
-                billingIncrement?: undefined;
-            } | {
-                '@type': string;
-                name: string;
-                description: string;
-                price: string;
-                priceCurrency: string;
-                billingIncrement: string;
-                availability: string;
-            })[];
+            }[];
             featureList: string[];
             applicationSubCategory: string;
             audience: {
@@ -986,17 +891,7 @@ declare const _default: {
             };
             datePublished: string;
             dateModified: string;
-            version: string;
             softwareRequirements: string;
-            storageRequirements: string;
-            memoryRequirements: string;
-            supportingData: {
-                blockchainNetworks: string[];
-                supportedWallets: string[];
-                smartContractSupport: boolean;
-                ensCompatible: boolean;
-                snsCompatible: boolean;
-            };
         } | {
             '@context': string;
             '@type': string;

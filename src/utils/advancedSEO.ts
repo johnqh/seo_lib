@@ -71,36 +71,28 @@ const getBranding = (
 };
 
 /**
- * Generate a Schema.org SoftwareApplication schema for a Web3 product.
+ * Generate a Schema.org WebApplication schema for a Web3 software service.
  *
  * Includes offers, feature lists, blockchain network support, wallet compatibility,
- * and audience targeting.
+ * and audience targeting. Designed for SaaS/web-based services rather than
+ * downloadable products.
  *
  * @param config - Advanced SEO configuration with branding and content details
- * @returns A Schema.org SoftwareApplication JSON-LD object
+ * @returns A Schema.org WebApplication JSON-LD object
  */
-export const createWeb3ProductSchema = (config: AdvancedSEOConfig) => {
+export const createWebApplicationSchema = (config: AdvancedSEOConfig) => {
   const audienceArray = ensureArray(config.audience);
   const branding = getBranding(config.branding);
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
+    '@type': 'WebApplication',
     name: branding.appName,
     applicationCategory: 'CommunicationApplication',
-    operatingSystem: 'Web Browser',
+    operatingSystem: 'Web',
+    browserRequirements: 'Requires a modern browser with Web3 wallet extension',
     description: config.description,
     url: branding.baseUrl,
-    downloadUrl: `${branding.baseUrl}/connect`,
-    installUrl: `${branding.baseUrl}/connect`,
-    screenshot: `${branding.baseUrl}/screenshots/app-preview.jpg`,
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '2500',
-      bestRating: '5',
-      worstRating: '1',
-    },
     offers: [
       {
         '@type': 'Offer',
@@ -117,7 +109,6 @@ export const createWeb3ProductSchema = (config: AdvancedSEOConfig) => {
           'Advanced features with ENS/SNS domains and priority support',
         price: '2.00',
         priceCurrency: 'USD',
-        billingIncrement: 'month',
         availability: 'https://schema.org/InStock',
       },
     ],
@@ -146,30 +137,12 @@ export const createWeb3ProductSchema = (config: AdvancedSEOConfig) => {
     },
     datePublished: '2024-01-01',
     dateModified: config.lastUpdated?.toISOString() || new Date().toISOString(),
-    version: '1.0',
     softwareRequirements: 'Web3 Wallet (MetaMask, Phantom, etc.)',
-    storageRequirements: '5MB',
-    memoryRequirements: '512MB RAM',
-    supportingData: {
-      blockchainNetworks: [
-        'Ethereum',
-        'Solana',
-        'Polygon',
-        'Arbitrum',
-        'Optimism',
-      ],
-      supportedWallets: [
-        'MetaMask',
-        'Phantom',
-        'WalletConnect',
-        'Coinbase Wallet',
-      ],
-      smartContractSupport: true,
-      ensCompatible: true,
-      snsCompatible: true,
-    },
   };
 };
+
+/** @deprecated Use createWebApplicationSchema instead */
+export const createWeb3ProductSchema = createWebApplicationSchema;
 
 /**
  * Generate a Schema.org TechnicalArticle schema for guides and documentation.
@@ -498,7 +471,7 @@ export const createAIMetaTags = (config: AdvancedSEOConfig) => {
  */
 export const generateAdvancedSEO = (config: AdvancedSEOConfig) => ({
   structuredData: {
-    product: createWeb3ProductSchema(config),
+    webApplication: createWebApplicationSchema(config),
     article: createTechnicalArticleSchema(config),
     aiOptimized: createAIOptimizedSchema(config),
   },
@@ -506,7 +479,7 @@ export const generateAdvancedSEO = (config: AdvancedSEOConfig) => ({
   twitterCard: createEnhancedTwitterCard(config),
   aiMetaTags: createAIMetaTags(config),
   jsonLD: [
-    createWeb3ProductSchema(config),
+    createWebApplicationSchema(config),
     createTechnicalArticleSchema(config),
     createAIOptimizedSchema(config),
   ],

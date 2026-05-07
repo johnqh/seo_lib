@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  createWeb3ProductSchema,
+  createWebApplicationSchema,
   createTechnicalArticleSchema,
   createEnhancedFAQSchema,
   createAIOptimizedSchema,
@@ -36,19 +36,31 @@ const mockConfig: AdvancedSEOConfig = {
 };
 
 describe('advancedSEO utilities', () => {
-  describe('createWeb3ProductSchema', () => {
-    it('should create valid product schema', () => {
-      const schema = createWeb3ProductSchema(mockConfig);
+  describe('createWebApplicationSchema', () => {
+    it('should create valid WebApplication schema', () => {
+      const schema = createWebApplicationSchema(mockConfig);
 
       expect(schema['@context']).toBe('https://schema.org');
-      expect(schema['@type']).toBe('SoftwareApplication');
+      expect(schema['@type']).toBe('WebApplication');
       expect(schema.name).toBe('TestApp');
       expect(schema.applicationCategory).toBe('CommunicationApplication');
+      expect(schema.operatingSystem).toBe('Web');
       expect(schema.url).toBe('https://test.com');
     });
 
+    it('should not include fabricated ratings or download URLs', () => {
+      const schema = createWebApplicationSchema(mockConfig);
+
+      expect(schema).not.toHaveProperty('aggregateRating');
+      expect(schema).not.toHaveProperty('downloadUrl');
+      expect(schema).not.toHaveProperty('installUrl');
+      expect(schema).not.toHaveProperty('storageRequirements');
+      expect(schema).not.toHaveProperty('memoryRequirements');
+      expect(schema).not.toHaveProperty('supportingData');
+    });
+
     it('should include feature list', () => {
-      const schema = createWeb3ProductSchema(mockConfig);
+      const schema = createWebApplicationSchema(mockConfig);
 
       expect(schema.featureList).toBeDefined();
       expect(Array.isArray(schema.featureList)).toBe(true);
@@ -56,7 +68,7 @@ describe('advancedSEO utilities', () => {
     });
 
     it('should include offers', () => {
-      const schema = createWeb3ProductSchema(mockConfig);
+      const schema = createWebApplicationSchema(mockConfig);
 
       expect(schema.offers).toBeDefined();
       expect(Array.isArray(schema.offers)).toBe(true);
@@ -64,11 +76,17 @@ describe('advancedSEO utilities', () => {
     });
 
     it('should include audience information', () => {
-      const schema = createWeb3ProductSchema(mockConfig);
+      const schema = createWebApplicationSchema(mockConfig);
 
       expect(schema.audience).toBeDefined();
       expect(schema.audience['@type']).toBe('Audience');
       expect(schema.audience.audienceType).toContain('developers');
+    });
+
+    it('should include browser requirements', () => {
+      const schema = createWebApplicationSchema(mockConfig);
+
+      expect(schema.browserRequirements).toBeDefined();
     });
   });
 
@@ -360,7 +378,7 @@ describe('advancedSEO utilities', () => {
     it('should include all structured data types', () => {
       const seo = generateAdvancedSEO(mockConfig);
 
-      expect(seo.structuredData.product).toBeDefined();
+      expect(seo.structuredData.webApplication).toBeDefined();
       expect(seo.structuredData.article).toBeDefined();
       expect(seo.structuredData.aiOptimized).toBeDefined();
     });
