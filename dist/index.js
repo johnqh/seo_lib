@@ -88,6 +88,7 @@ function usePageSEO(data, config) {
     canonical,
     lang,
     pathWithoutLang,
+    ogImage,
     ogType = "website",
     noIndex = false,
     structuredData
@@ -108,18 +109,19 @@ function usePageSEO(data, config) {
     if (keywords && keywords.length > 0) {
       setMeta("name", "keywords", keywords.join(", "));
     }
+    const image = ogImage || defaultOgImage;
     setMeta("property", "og:type", ogType);
     setMeta("property", "og:site_name", appName);
     setMeta("property", "og:title", title);
     setMeta("property", "og:description", description);
     setMeta("property", "og:url", canonical);
-    setMeta("property", "og:image", defaultOgImage);
+    setMeta("property", "og:image", image);
     setMeta("property", "og:image:alt", title);
     setMeta("property", "og:locale", lang);
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
-    setMeta("name", "twitter:image", defaultOgImage);
+    setMeta("name", "twitter:image", image);
     if (twitterHandle) {
       setMeta("name", "twitter:site", `@${twitterHandle}`);
     }
@@ -129,6 +131,7 @@ function usePageSEO(data, config) {
     keywords,
     canonical,
     lang,
+    ogImage,
     ogType,
     noIndex,
     appName,
@@ -203,6 +206,7 @@ function SEOHead({
   title,
   description,
   keywords,
+  ogImage,
   ogType = "website",
   noIndex = false,
   structuredData
@@ -263,6 +267,7 @@ function SEOHead({
       canonical,
       lang: urlLang,
       pathWithoutLang,
+      ogImage,
       ogType,
       noIndex: shouldNoIndex,
       structuredData: schemas

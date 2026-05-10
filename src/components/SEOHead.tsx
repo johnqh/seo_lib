@@ -9,6 +9,7 @@ export interface SEOHeadProps {
   title: string;
   description: string;
   keywords?: string[];
+  ogImage?: string;
   ogType?: 'website' | 'article';
   noIndex?: boolean;
   structuredData?: Record<string, unknown> | Record<string, unknown>[];
@@ -28,6 +29,7 @@ export function SEOHead({
   title,
   description,
   keywords,
+  ogImage,
   ogType = 'website',
   noIndex = false,
   structuredData,
@@ -101,6 +103,7 @@ export function SEOHead({
       canonical,
       lang: urlLang,
       pathWithoutLang,
+      ogImage,
       ogType,
       noIndex: shouldNoIndex,
       structuredData: schemas,

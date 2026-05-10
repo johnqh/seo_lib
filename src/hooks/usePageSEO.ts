@@ -43,6 +43,8 @@ export interface PageSEOData {
   lang: string;
   /** Path without the language prefix (e.g., '/techniques/hidden-pair'). Used for hreflang. */
   pathWithoutLang: string;
+  /** Custom Open Graph image URL. Falls back to defaultOgImage from config. */
+  ogImage?: string;
   /** Open Graph type. Defaults to 'website'. */
   ogType?: 'website' | 'article';
   /** Whether to set noindex. Defaults to false. */
@@ -117,6 +119,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     canonical,
     lang,
     pathWithoutLang,
+    ogImage,
     ogType = 'website',
     noIndex = false,
     structuredData,
@@ -145,12 +148,13 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     }
 
     // Open Graph
+    const image = ogImage || defaultOgImage;
     setMeta('property', 'og:type', ogType);
     setMeta('property', 'og:site_name', appName);
     setMeta('property', 'og:title', title);
     setMeta('property', 'og:description', description);
     setMeta('property', 'og:url', canonical);
-    setMeta('property', 'og:image', defaultOgImage);
+    setMeta('property', 'og:image', image);
     setMeta('property', 'og:image:alt', title);
     setMeta('property', 'og:locale', lang);
 
@@ -158,7 +162,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     setMeta('name', 'twitter:card', 'summary_large_image');
     setMeta('name', 'twitter:title', title);
     setMeta('name', 'twitter:description', description);
-    setMeta('name', 'twitter:image', defaultOgImage);
+    setMeta('name', 'twitter:image', image);
     if (twitterHandle) {
       setMeta('name', 'twitter:site', `@${twitterHandle}`);
     }
@@ -168,6 +172,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     keywords,
     canonical,
     lang,
+    ogImage,
     ogType,
     noIndex,
     appName,
