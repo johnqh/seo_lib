@@ -229,7 +229,7 @@ function SEOHead({
   const urlLangMatch = location.pathname.match(/^\/([a-z]{2}(-[a-z]+)?)(\/|$)/);
   const urlLang = urlLangMatch ? urlLangMatch[1] : lang;
   const pathWithoutLang = location.pathname.replace(
-    /^\/[a-z]{2}(-[a-z]+)?\//,
+    /^\/[a-z]{2}(-[a-z]+)?(\/|$)/,
     "/"
   );
   const canonical = `${baseUrl}/${urlLang}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
