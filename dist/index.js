@@ -102,8 +102,19 @@ function usePageSEO(data, config) {
     defaultLanguage
   } = config;
   const hreflangRef = useRef([]);
+  const cleanedUpRef = useRef(false);
+  useEffect(() => {
+    if (cleanedUpRef.current) return;
+    cleanedUpRef.current = true;
+    document.querySelectorAll('meta[property^="twitter:"]').forEach((el) => el.remove());
+    document.querySelectorAll('link[rel="alternate"][hreflang]:not([data-rh])').forEach((el) => el.remove());
+    document.querySelectorAll(
+      'script[type="application/ld+json"]:not([data-seo-managed])'
+    ).forEach((el) => el.remove());
+  }, []);
   useEffect(() => {
     document.title = title;
+    setMeta("name", "title", title);
     setMeta("name", "description", description);
     setMeta("name", "robots", noIndex ? "noindex, nofollow" : "index, follow");
     if (keywords && keywords.length > 0) {
@@ -183,6 +194,80 @@ function usePageSEO(data, config) {
     }
   }, [schemasJson]);
 }
+function buildOrganizationSchema(config) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${config.url}/#organization`,
+    name: config.name,
+    url: config.url,
+    logo: {
+      "@type": "ImageObject",
+      url: config.logoUrl,
+      width: 512,
+      height: 512
+    },
+    description: config.description
+  };
+  if (config.foundingDate) {
+    schema.foundingDate = config.foundingDate;
+  }
+  if (config.supportEmail || config.supportedLanguages) {
+    const contactPoint = {
+      "@type": "ContactPoint",
+      contactType: "customer support"
+    };
+    if (config.supportEmail) {
+      contactPoint.email = config.supportEmail;
+    }
+    if (config.supportedLanguages && config.supportedLanguages.length > 0) {
+      contactPoint.availableLanguage = [...config.supportedLanguages];
+    }
+    schema.contactPoint = contactPoint;
+  }
+  return schema;
+}
+function buildSoftwareApplicationSchema(config) {
+  const orgName = config.organizationName || config.name;
+  const orgUrl = config.organizationUrl || config.url;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: config.name,
+    applicationCategory: config.applicationCategory,
+    operatingSystem: "Web",
+    description: config.description,
+    url: config.url,
+    author: {
+      "@type": "Organization",
+      name: orgName,
+      url: orgUrl
+    },
+    publisher: {
+      "@type": "Organization",
+      name: orgName,
+      url: orgUrl
+    },
+    dateModified: config.dateModified || (/* @__PURE__ */ new Date()).toISOString().split("T")[0]
+  };
+  if (config.applicationSubCategory) {
+    schema.applicationSubCategory = config.applicationSubCategory;
+  }
+  if (config.offers) {
+    schema.offers = {
+      "@type": "AggregateOffer",
+      lowPrice: config.offers.lowPrice || "0",
+      highPrice: config.offers.highPrice || "0",
+      priceCurrency: config.offers.priceCurrency || "USD",
+      offerCount: config.offers.offerCount || "1"
+    };
+  }
+  if (config.featureList && config.featureList.length > 0) {
+    schema.featureList = config.featureList;
+  }
+  schema.softwareRequirements = "Modern web browser";
+  return schema;
+}
 function isNonProductionHost() {
   if (typeof window === "undefined") return false;
   const hostname = window.location.hostname;
@@ -224,7 +309,10 @@ function SEOHead({
     defaultLanguage,
     applicationCategory,
     applicationSubCategory,
-    howtoNamespace = "howto"
+    howtoNamespace = "howto",
+    organizationName,
+    supportEmail,
+    foundingDate
   } = config;
   const urlLangMatch = location.pathname.match(/^\/([a-z]{2}(-[a-z]+)?)(\/|$)/);
   const urlLang = urlLangMatch ? urlLangMatch[1] : lang;
@@ -254,10 +342,31 @@ function SEOHead({
     }),
     [appName, baseUrl, applicationCategory, applicationSubCategory, tHowTo]
   );
+  const orgSchema = useMemo(
+    () => buildOrganizationSchema({
+      name: organizationName || appName,
+      url: baseUrl,
+      logoUrl: defaultOgImage,
+      description: tHowTo("webApp.description"),
+      supportEmail,
+      foundingDate,
+      supportedLanguages
+    }),
+    [
+      organizationName,
+      appName,
+      baseUrl,
+      defaultOgImage,
+      tHowTo,
+      supportEmail,
+      foundingDate,
+      supportedLanguages
+    ]
+  );
   const pageSchemas = structuredData ? Array.isArray(structuredData) ? structuredData : [structuredData] : [];
   const schemas = useMemo(
-    () => [webAppSchema, ...pageSchemas],
-    [webAppSchema, JSON.stringify(pageSchemas)]
+    () => [webAppSchema, orgSchema, ...pageSchemas],
+    [webAppSchema, orgSchema, JSON.stringify(pageSchemas)]
   );
   usePageSEO(
     {
@@ -1463,6 +1572,8 @@ export {
   WEB3_EMAIL_HEADINGS,
   WEB3_HEADING_PATTERNS,
   buildHowToSchema,
+  buildOrganizationSchema,
+  buildSoftwareApplicationSchema,
   createAIMetaTags,
   createAIOptimizedSchema,
   createEnhancedFAQSchema,

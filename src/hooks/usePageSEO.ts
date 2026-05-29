@@ -137,10 +137,37 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
   // Track managed hreflang elements for cleanup
   const hreflangRef = useRef<HTMLLinkElement[]>([]);
 
+  // One-time cleanup of pre-rendered / static HTML artifacts that React will replace.
+  // Removes tags injected by generate-seo-assets or index.html that would otherwise
+  // duplicate the dynamically managed versions.
+  const cleanedUpRef = useRef(false);
+  useEffect(() => {
+    if (cleanedUpRef.current) return;
+    cleanedUpRef.current = true;
+
+    // Remove pre-rendered twitter tags that use property= (we use name=)
+    document
+      .querySelectorAll('meta[property^="twitter:"]')
+      .forEach(el => el.remove());
+
+    // Remove pre-rendered hreflang links (managed ones have data-rh)
+    document
+      .querySelectorAll('link[rel="alternate"][hreflang]:not([data-rh])')
+      .forEach(el => el.remove());
+
+    // Remove pre-rendered structured data (managed ones have data-seo-managed)
+    document
+      .querySelectorAll(
+        'script[type="application/ld+json"]:not([data-seo-managed])'
+      )
+      .forEach(el => el.remove());
+  }, []);
+
   // Title + meta tags
   useEffect(() => {
     document.title = title;
 
+    setMeta('name', 'title', title);
     setMeta('name', 'description', description);
     setMeta('name', 'robots', noIndex ? 'noindex, nofollow' : 'index, follow');
     if (keywords && keywords.length > 0) {

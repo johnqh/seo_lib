@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { usePageSEO } from '../hooks/usePageSEO';
+import { buildOrganizationSchema } from '../utils/schemas';
 import { isNonProductionHost } from '../utils/seoHost';
 import { useSEOHeadConfig } from './SEOHeadContext';
 
@@ -48,6 +49,9 @@ export function SEOHead({
     applicationCategory,
     applicationSubCategory,
     howtoNamespace = 'howto',
+    organizationName,
+    supportEmail,
+    foundingDate,
   } = config;
 
   // Canonical URL: use language from the URL path (not i18n preference)
@@ -83,15 +87,39 @@ export function SEOHead({
     [appName, baseUrl, applicationCategory, applicationSubCategory, tHowTo]
   );
 
-  // Combine WebApplication + page-specific schemas
+  // Organization schema — always included, localized description
+  const orgSchema = useMemo(
+    () =>
+      buildOrganizationSchema({
+        name: organizationName || appName,
+        url: baseUrl,
+        logoUrl: defaultOgImage,
+        description: tHowTo('webApp.description'),
+        supportEmail,
+        foundingDate,
+        supportedLanguages,
+      }),
+    [
+      organizationName,
+      appName,
+      baseUrl,
+      defaultOgImage,
+      tHowTo,
+      supportEmail,
+      foundingDate,
+      supportedLanguages,
+    ]
+  );
+
+  // Combine WebApplication + Organization + page-specific schemas
   const pageSchemas = structuredData
     ? Array.isArray(structuredData)
       ? structuredData
       : [structuredData]
     : [];
   const schemas = useMemo(
-    () => [webAppSchema, ...pageSchemas],
-    [webAppSchema, JSON.stringify(pageSchemas)]
+    () => [webAppSchema, orgSchema, ...pageSchemas],
+    [webAppSchema, orgSchema, JSON.stringify(pageSchemas)]
   );
 
   // Single hook handles all DOM manipulation

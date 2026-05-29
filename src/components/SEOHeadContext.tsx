@@ -19,6 +19,12 @@ export interface SEOHeadConfig {
   applicationSubCategory?: string;
   /** i18n namespace for howto translations. Defaults to 'howto'. */
   howtoNamespace?: string;
+  /** Organization name for structured data (e.g., 'Acme Inc.'). Defaults to appName. */
+  organizationName?: string;
+  /** Support email for Organization schema contactPoint. */
+  supportEmail?: string;
+  /** Founding year/date for Organization schema. */
+  foundingDate?: string;
 }
 
 const SEOHeadConfigContext = createContext<SEOHeadConfig | null>(null);
