@@ -45,6 +45,7 @@ export function SEOHead({
     defaultOgImage,
     twitterHandle,
     supportedLanguages,
+    languageHreflangMap,
     defaultLanguage,
     applicationCategory,
     applicationSubCategory,
@@ -142,6 +143,7 @@ export function SEOHead({
       defaultOgImage,
       twitterHandle,
       supportedLanguages,
+      languageHreflangMap,
       defaultLanguage,
     }
   );

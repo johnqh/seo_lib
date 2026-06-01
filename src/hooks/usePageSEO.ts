@@ -64,14 +64,25 @@ export interface PageSEOConfig {
   twitterHandle?: string;
   /** All supported language codes. */
   supportedLanguages: readonly string[];
+  /** Optional hreflang overrides by app language code, e.g. { zh: 'zh-Hans' }. */
+  languageHreflangMap?: Readonly<Record<string, string>>;
   /** Default/fallback language code. */
   defaultLanguage: string;
 }
 
 function setMeta(attr: string, key: string, content: string): void {
-  let el = document.querySelector(
-    `meta[${attr}="${key}"]`
-  ) as HTMLMetaElement | null;
+  const matches = Array.from(
+    document.querySelectorAll(`meta[${attr}="${key}"]`)
+  ) as HTMLMetaElement[];
+  let el =
+    matches.find(match => match.getAttribute('data-rh') === 'true') ||
+    matches[0] ||
+    null;
+  for (const duplicate of matches) {
+    if (duplicate !== el) {
+      duplicate.remove();
+    }
+  }
   if (!el) {
     el = document.createElement('meta');
     el.setAttribute(attr, key);
@@ -91,7 +102,18 @@ function setLink(
         .map(([k, v]) => `${k}="${v}"`)
         .join('][')}]`
     : `link[rel="${rel}"]`;
-  let el = document.querySelector(selector) as HTMLLinkElement | null;
+  const matches = Array.from(
+    document.querySelectorAll(selector)
+  ) as HTMLLinkElement[];
+  let el =
+    matches.find(match => match.getAttribute('data-rh') === 'true') ||
+    matches[0] ||
+    null;
+  for (const duplicate of matches) {
+    if (duplicate !== el) {
+      duplicate.remove();
+    }
+  }
   if (!el) {
     el = document.createElement('link');
     el.rel = rel;
@@ -131,6 +153,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     defaultOgImage,
     twitterHandle,
     supportedLanguages,
+    languageHreflangMap,
     defaultLanguage,
   } = config;
 
@@ -145,9 +168,25 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     if (cleanedUpRef.current) return;
     cleanedUpRef.current = true;
 
-    // Remove pre-rendered twitter tags that use property= (we use name=)
+    // Remove legacy/static tags that otherwise remain as conflicting duplicates
+    // beside the route-managed values.
     document
-      .querySelectorAll('meta[property^="twitter:"]')
+      .querySelectorAll(
+        [
+          'meta[name="title"]:not([data-rh])',
+          'meta[name="description"]:not([data-rh])',
+          'meta[name="keywords"]:not([data-rh])',
+          'meta[name="robots"]:not([data-rh])',
+          'meta[property^="og:"]:not([data-rh])',
+        ].join(',')
+      )
+      .forEach(el => el.remove());
+
+    // Remove pre-rendered twitter tags that use property= (we use name=).
+    document
+      .querySelectorAll(
+        'meta[property^="twitter:"],meta[name^="twitter:"]:not([data-rh])'
+      )
       .forEach(el => el.remove());
 
     // Remove pre-rendered hreflang links (managed ones have data-rh)
@@ -225,7 +264,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
       const href = `${baseUrl}/${lng}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
       const el = document.createElement('link');
       el.rel = 'alternate';
-      el.hreflang = lng;
+      el.hreflang = languageHreflangMap?.[lng] || lng;
       el.href = href;
       el.setAttribute('data-rh', 'true');
       document.head.appendChild(el);
@@ -248,7 +287,13 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
         el.remove();
       }
     };
-  }, [baseUrl, pathWithoutLang, supportedLanguages, defaultLanguage]);
+  }, [
+    baseUrl,
+    pathWithoutLang,
+    supportedLanguages,
+    languageHreflangMap,
+    defaultLanguage,
+  ]);
 
   // Structured data scripts
   const schemasJson = JSON.stringify(structuredData ?? []);

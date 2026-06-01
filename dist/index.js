@@ -57,9 +57,15 @@ const SEO = ({
   ] });
 };
 function setMeta(attr, key, content) {
-  let el = document.querySelector(
-    `meta[${attr}="${key}"]`
+  const matches = Array.from(
+    document.querySelectorAll(`meta[${attr}="${key}"]`)
   );
+  let el = matches.find((match) => match.getAttribute("data-rh") === "true") || matches[0] || null;
+  for (const duplicate of matches) {
+    if (duplicate !== el) {
+      duplicate.remove();
+    }
+  }
   if (!el) {
     el = document.createElement("meta");
     el.setAttribute(attr, key);
@@ -70,7 +76,15 @@ function setMeta(attr, key, content) {
 }
 function setLink(rel, href, attrs) {
   const selector = `link[rel="${rel}"]`;
-  let el = document.querySelector(selector);
+  const matches = Array.from(
+    document.querySelectorAll(selector)
+  );
+  let el = matches.find((match) => match.getAttribute("data-rh") === "true") || matches[0] || null;
+  for (const duplicate of matches) {
+    if (duplicate !== el) {
+      duplicate.remove();
+    }
+  }
   if (!el) {
     el = document.createElement("link");
     el.rel = rel;
@@ -99,6 +113,7 @@ function usePageSEO(data, config) {
     defaultOgImage,
     twitterHandle,
     supportedLanguages,
+    languageHreflangMap,
     defaultLanguage
   } = config;
   const hreflangRef = useRef([]);
@@ -106,7 +121,18 @@ function usePageSEO(data, config) {
   useEffect(() => {
     if (cleanedUpRef.current) return;
     cleanedUpRef.current = true;
-    document.querySelectorAll('meta[property^="twitter:"]').forEach((el) => el.remove());
+    document.querySelectorAll(
+      [
+        'meta[name="title"]:not([data-rh])',
+        'meta[name="description"]:not([data-rh])',
+        'meta[name="keywords"]:not([data-rh])',
+        'meta[name="robots"]:not([data-rh])',
+        'meta[property^="og:"]:not([data-rh])'
+      ].join(",")
+    ).forEach((el) => el.remove());
+    document.querySelectorAll(
+      'meta[property^="twitter:"],meta[name^="twitter:"]:not([data-rh])'
+    ).forEach((el) => el.remove());
     document.querySelectorAll('link[rel="alternate"][hreflang]:not([data-rh])').forEach((el) => el.remove());
     document.querySelectorAll(
       'script[type="application/ld+json"]:not([data-seo-managed])'
@@ -161,7 +187,7 @@ function usePageSEO(data, config) {
       const href = `${baseUrl}/${lng}${pathWithoutLang === "/" ? "" : pathWithoutLang}`;
       const el = document.createElement("link");
       el.rel = "alternate";
-      el.hreflang = lng;
+      el.hreflang = languageHreflangMap?.[lng] || lng;
       el.href = href;
       el.setAttribute("data-rh", "true");
       document.head.appendChild(el);
@@ -180,7 +206,13 @@ function usePageSEO(data, config) {
         el.remove();
       }
     };
-  }, [baseUrl, pathWithoutLang, supportedLanguages, defaultLanguage]);
+  }, [
+    baseUrl,
+    pathWithoutLang,
+    supportedLanguages,
+    languageHreflangMap,
+    defaultLanguage
+  ]);
   const schemasJson = JSON.stringify(structuredData ?? []);
   useEffect(() => {
     document.querySelectorAll("script[data-seo-managed]").forEach((el) => el.remove());
@@ -306,6 +338,7 @@ function SEOHead({
     defaultOgImage,
     twitterHandle,
     supportedLanguages,
+    languageHreflangMap,
     defaultLanguage,
     applicationCategory,
     applicationSubCategory,
@@ -387,6 +420,7 @@ function SEOHead({
       defaultOgImage,
       twitterHandle,
       supportedLanguages,
+      languageHreflangMap,
       defaultLanguage
     }
   );

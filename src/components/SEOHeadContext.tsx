@@ -11,6 +11,8 @@ export interface SEOHeadConfig {
   twitterHandle?: string;
   /** All supported language codes. */
   supportedLanguages: readonly string[];
+  /** Optional hreflang overrides by app language code, e.g. { zh: 'zh-Hans' }. */
+  languageHreflangMap?: Readonly<Record<string, string>>;
   /** Default/fallback language code. */
   defaultLanguage: string;
   /** Schema.org applicationCategory for WebApplication schema. */
