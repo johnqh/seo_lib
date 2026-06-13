@@ -261,7 +261,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
 
     // One link per supported language
     for (const lng of supportedLanguages) {
-      const href = `${baseUrl}/${lng}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+      const href = `${baseUrl}/${lng}${pathWithoutLang === '/' ? '/' : pathWithoutLang}`;
       const el = document.createElement('link');
       el.rel = 'alternate';
       el.hreflang = languageHreflangMap?.[lng] || lng;
@@ -275,7 +275,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     const xDefault = document.createElement('link');
     xDefault.rel = 'alternate';
     xDefault.hreflang = 'x-default';
-    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang === '/' ? '/' : pathWithoutLang}`;
     xDefault.setAttribute('data-rh', 'true');
     document.head.appendChild(xDefault);
     elements.push(xDefault);

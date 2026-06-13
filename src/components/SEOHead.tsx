@@ -62,7 +62,8 @@ export function SEOHead({
     /^\/[a-z]{2}(-[a-z]+)?(\/|$)/,
     '/'
   );
-  const canonical = `${baseUrl}/${urlLang}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+  // Trailing slash on the language root (e.g. /en/) to match the sitemap convention.
+  const canonical = `${baseUrl}/${urlLang}${pathWithoutLang === '/' ? '/' : pathWithoutLang}`;
 
   const shouldNoIndex = noIndex || isNonProductionHost();
 
