@@ -253,15 +253,20 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
 
   // Hreflang tags
   useEffect(() => {
-    // Remove previous managed hreflang links
-    for (const el of hreflangRef.current) {
-      el.remove();
-    }
+    // Remove EVERY existing hreflang alternate before rebuilding. This must
+    // include prerender-injected tags, which carry data-rh="true" (captured
+    // from a prior render) and would otherwise survive and be duplicated by
+    // the set appended below — producing two conflicting clusters.
+    document
+      .querySelectorAll('link[rel="alternate"][hreflang]')
+      .forEach(el => el.remove());
+    hreflangRef.current = [];
     const elements: HTMLLinkElement[] = [];
 
-    // One link per supported language
+    // One link per supported language. pathWithoutLang is already normalized to
+    // a trailing slash by the caller, so these match the canonical exactly.
     for (const lng of supportedLanguages) {
-      const href = `${baseUrl}/${lng}${pathWithoutLang === '/' ? '/' : pathWithoutLang}`;
+      const href = `${baseUrl}/${lng}${pathWithoutLang}`;
       const el = document.createElement('link');
       el.rel = 'alternate';
       el.hreflang = languageHreflangMap?.[lng] || lng;
@@ -275,7 +280,7 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     const xDefault = document.createElement('link');
     xDefault.rel = 'alternate';
     xDefault.hreflang = 'x-default';
-    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang === '/' ? '/' : pathWithoutLang}`;
+    xDefault.href = `${baseUrl}/${defaultLanguage}${pathWithoutLang}`;
     xDefault.setAttribute('data-rh', 'true');
     document.head.appendChild(xDefault);
     elements.push(xDefault);

@@ -58,12 +58,18 @@ export function SEOHead({
   // Canonical URL: use language from the URL path (not i18n preference)
   const urlLangMatch = location.pathname.match(/^\/([a-z]{2}(-[a-z]+)?)(\/|$)/);
   const urlLang = urlLangMatch ? urlLangMatch[1] : lang;
-  const pathWithoutLang = location.pathname.replace(
+  const rawPathWithoutLang = location.pathname.replace(
     /^\/[a-z]{2}(-[a-z]+)?(\/|$)/,
     '/'
   );
-  // Trailing slash on the language root (e.g. /en/) to match the sitemap convention.
-  const canonical = `${baseUrl}/${urlLang}${pathWithoutLang === '/' ? '/' : pathWithoutLang}`;
+  // Always normalize to a single trailing slash to match the sitemap and
+  // prerender convention (e.g. /en/, /en/techniques/x-wing/). Canonical and
+  // every hreflang alternate are derived from this same value, so they stay
+  // byte-for-byte identical — a prerequisite for a valid hreflang cluster.
+  const pathWithoutLang = rawPathWithoutLang.endsWith('/')
+    ? rawPathWithoutLang
+    : `${rawPathWithoutLang}/`;
+  const canonical = `${baseUrl}/${urlLang}${pathWithoutLang}`;
 
   const shouldNoIndex = noIndex || isNonProductionHost();
 
