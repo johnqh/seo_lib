@@ -263,8 +263,9 @@ export function usePageSEO(data: PageSEOData, config: PageSEOConfig): void {
     hreflangRef.current = [];
     const elements: HTMLLinkElement[] = [];
 
-    // One link per supported language. pathWithoutLang is already normalized to
-    // a trailing slash by the caller, so these match the canonical exactly.
+    // One link per supported language. pathWithoutLang is already normalized by
+    // the caller (no trailing slash; '' for the language root), so these match
+    // the canonical exactly.
     for (const lng of supportedLanguages) {
       const href = `${baseUrl}/${lng}${pathWithoutLang}`;
       const el = document.createElement('link');

@@ -14,9 +14,9 @@ function baseData(overrides: Partial<PageSEOData> = {}): PageSEOData {
   return {
     title: 'X-Wing',
     description: 'Learn the X-Wing technique.',
-    canonical: 'https://sudojo.com/en/techniques/x-wing/',
+    canonical: 'https://sudojo.com/en/techniques/x-wing',
     lang: 'en',
-    pathWithoutLang: '/techniques/x-wing/',
+    pathWithoutLang: '/techniques/x-wing',
     ...overrides,
   };
 }
@@ -47,7 +47,7 @@ describe('usePageSEO hreflang / canonical consistency', () => {
     const canonical = document.querySelector(
       'link[rel="canonical"]'
     ) as HTMLLinkElement;
-    expect(canonical.href).toBe('https://sudojo.com/en/techniques/x-wing/');
+    expect(canonical.href).toBe('https://sudojo.com/en/techniques/x-wing');
     // A valid hreflang cluster requires self-hreflang === canonical.
     expect(self.href).toBe(canonical.href);
   });
@@ -59,7 +59,7 @@ describe('usePageSEO hreflang / canonical consistency', () => {
       const link = document.createElement('link');
       link.rel = 'alternate';
       link.hreflang = l;
-      link.href = `https://sudojo.com/${l === 'x-default' ? 'en' : l}/techniques/x-wing/`;
+      link.href = `https://sudojo.com/${l === 'x-default' ? 'en' : l}/techniques/x-wing`;
       link.setAttribute('data-rh', 'true');
       document.head.appendChild(link);
     }
@@ -71,12 +71,12 @@ describe('usePageSEO hreflang / canonical consistency', () => {
     expect(hreflangLinks()).toHaveLength(4);
   });
 
-  it('uses a single trailing-slash canonical for the language root', () => {
+  it('uses a slash-free canonical for the language root', () => {
     renderHook(() =>
       usePageSEO(
         baseData({
-          canonical: 'https://sudojo.com/en/',
-          pathWithoutLang: '/',
+          canonical: 'https://sudojo.com/en',
+          pathWithoutLang: '',
         }),
         config
       )
@@ -84,6 +84,6 @@ describe('usePageSEO hreflang / canonical consistency', () => {
     const self = document.querySelector(
       'link[rel="alternate"][hreflang="en"]'
     ) as HTMLLinkElement;
-    expect(self.href).toBe('https://sudojo.com/en/');
+    expect(self.href).toBe('https://sudojo.com/en');
   });
 });

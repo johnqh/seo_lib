@@ -352,7 +352,7 @@ function SEOHead({
     /^\/[a-z]{2}(-[a-z]+)?(\/|$)/,
     "/"
   );
-  const pathWithoutLang = rawPathWithoutLang.endsWith("/") ? rawPathWithoutLang : `${rawPathWithoutLang}/`;
+  const pathWithoutLang = rawPathWithoutLang === "/" ? "" : rawPathWithoutLang.replace(/\/+$/, "");
   const canonical = `${baseUrl}/${urlLang}${pathWithoutLang}`;
   const shouldNoIndex = noIndex || isNonProductionHost();
   const { t: tHowTo } = useTranslation(howtoNamespace);

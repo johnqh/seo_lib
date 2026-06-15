@@ -62,13 +62,13 @@ export function SEOHead({
     /^\/[a-z]{2}(-[a-z]+)?(\/|$)/,
     '/'
   );
-  // Always normalize to a single trailing slash to match the sitemap and
-  // prerender convention (e.g. /en/, /en/techniques/x-wing/). Canonical and
-  // every hreflang alternate are derived from this same value, so they stay
+  // Normalize to NO trailing slash (source of truth) to match the sitemap and
+  // prerender convention (e.g. /en, /en/techniques/x-wing). The language root
+  // collapses to '' so the canonical is /en, not /en/. Canonical and every
+  // hreflang alternate are derived from this same value, so they stay
   // byte-for-byte identical — a prerequisite for a valid hreflang cluster.
-  const pathWithoutLang = rawPathWithoutLang.endsWith('/')
-    ? rawPathWithoutLang
-    : `${rawPathWithoutLang}/`;
+  const pathWithoutLang =
+    rawPathWithoutLang === '/' ? '' : rawPathWithoutLang.replace(/\/+$/, '');
   const canonical = `${baseUrl}/${urlLang}${pathWithoutLang}`;
 
   const shouldNoIndex = noIndex || isNonProductionHost();
