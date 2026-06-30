@@ -169,19 +169,19 @@ describe('SemanticHTML Components', () => {
     it('should render primary variant', () => {
       render(<SemanticButton variant="primary">Primary</SemanticButton>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-blue-600');
+      expect(button).toHaveClass('bg-primary');
     });
 
     it('should render secondary variant', () => {
       render(<SemanticButton variant="secondary">Secondary</SemanticButton>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-gray-200');
+      expect(button).toHaveClass('bg-secondary');
     });
 
     it('should render danger variant', () => {
       render(<SemanticButton variant="danger">Danger</SemanticButton>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-red-600');
+      expect(button).toHaveClass('bg-destructive');
     });
 
     it('should set aria-disabled when disabled', () => {

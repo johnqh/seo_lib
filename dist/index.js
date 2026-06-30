@@ -556,9 +556,9 @@ const SemanticButton = ({
 }) => {
   const baseClasses = "font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2";
   const variantClasses = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-    secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-ring",
+    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-ring",
+    danger: "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-ring"
   };
   return /* @__PURE__ */ jsx(
     "button",
@@ -586,7 +586,7 @@ const SemanticLink = ({
     /* @__PURE__ */ jsxs(
       "a",
       {
-        className: `text-blue-600 hover:text-blue-800 underline focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`,
+        className: `text-primary hover:text-primary/80 underline focus:outline-none focus:ring-2 focus:ring-ring ${className}`,
         href,
         ...linkProps,
         ...props,
@@ -603,7 +603,7 @@ const SkipLink = ({ href }) => /* @__PURE__ */ jsx(
   "a",
   {
     href,
-    className: "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50",
+    className: "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50",
     children: "Skip to main content"
   }
 );
@@ -645,14 +645,14 @@ const SemanticInput = ({
       "input",
       {
         id: inputId,
-        className: `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${error ? "border-red-500" : "border-gray-300"} ${className}`,
+        className: `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring ${error ? "border-destructive" : "border-input"} ${className}`,
         "aria-describedby": [helpId, errorId].filter(Boolean).join(" ") || void 0,
         "aria-invalid": error ? "true" : "false",
         ...props
       }
     ),
-    helpText && /* @__PURE__ */ jsx("p", { id: helpId, className: "mt-1 text-sm text-gray-600", children: helpText }),
-    error && /* @__PURE__ */ jsx("p", { id: errorId, className: "mt-1 text-sm text-red-600", role: "alert", children: error })
+    helpText && /* @__PURE__ */ jsx("p", { id: helpId, className: "mt-1 text-sm text-muted-foreground", children: helpText }),
+    error && /* @__PURE__ */ jsx("p", { id: errorId, className: "mt-1 text-sm text-destructive", role: "alert", children: error })
   ] });
 };
 const ScreenReaderOnly = ({
@@ -677,7 +677,7 @@ const SemanticLoading = ({
         /* @__PURE__ */ jsx(
           "div",
           {
-            className: `animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`,
+            className: `animate-spin rounded-full border-2 border-border border-t-primary ${sizeClasses[size]}`,
             "aria-hidden": "true"
           }
         ),
@@ -1167,12 +1167,12 @@ const createSemanticHeading = (config) => {
     // Details
   };
   const contextualStyling = {
-    "page-title": "text-gray-900 dark:text-white mb-6",
-    section: "text-gray-900 dark:text-white mb-4",
-    subsection: "text-gray-900 dark:text-white mb-3",
-    feature: "text-gray-900 dark:text-white mb-2",
-    benefit: "text-blue-600 dark:text-blue-400 mb-2",
-    step: "text-green-600 dark:text-green-400 mb-2"
+    "page-title": "text-foreground mb-6",
+    section: "text-foreground mb-4",
+    subsection: "text-foreground mb-3",
+    feature: "text-foreground mb-2",
+    benefit: "text-primary mb-2",
+    step: "text-success mb-2"
   };
   const finalClassName = [
     seoClassMapping[level],

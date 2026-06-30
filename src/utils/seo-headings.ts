@@ -59,12 +59,12 @@ export const createSemanticHeading = (
 
   // Context-specific styling
   const contextualStyling = {
-    'page-title': 'text-gray-900 dark:text-white mb-6',
-    section: 'text-gray-900 dark:text-white mb-4',
-    subsection: 'text-gray-900 dark:text-white mb-3',
-    feature: 'text-gray-900 dark:text-white mb-2',
-    benefit: 'text-blue-600 dark:text-blue-400 mb-2',
-    step: 'text-green-600 dark:text-green-400 mb-2',
+    'page-title': 'text-foreground mb-6',
+    section: 'text-foreground mb-4',
+    subsection: 'text-foreground mb-3',
+    feature: 'text-foreground mb-2',
+    benefit: 'text-primary mb-2',
+    step: 'text-success mb-2',
   };
 
   const finalClassName = [
