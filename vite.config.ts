@@ -17,10 +17,13 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        middleware: resolve(__dirname, 'src/middleware/index.ts'),
+      },
       name: 'SeoLib',
       formats: ['es'],
-      fileName: 'index',
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       external: [

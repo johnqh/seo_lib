@@ -1,0 +1,182 @@
+import { describe, it, expect, beforeAll } from 'vitest';
+import { createSeoMiddleware, HEAD_MARKER, BODY_MARKER } from './index';
+import type { PagesContext } from './index';
+
+const ORIGIN = 'https://example.com';
+
+const SHELL = `<!doctype html><html lang="en"><head><title>Shell</title></head><body><div id="root"></div></body></html>`;
+
+const THIN_FALLBACK = (route: string) =>
+  `<!doctype html><html lang="en"><head><title>Thin</title><link rel="canonical" href="${ORIGIN}${route}" /></head><body><div id="root"></div></body></html>`;
+
+const SNAPSHOT = `${HEAD_MARKER}\n<title>Snap</title>\n${BODY_MARKER}\n<main>rendered</main>`;
+
+// Minimal HTMLRewriter stub: the real one only exists in the workers runtime.
+// transform() just passes the response through — injection correctness is
+// covered by wrangler-based end-to-end testing in the consuming apps.
+beforeAll(() => {
+  class FakeRewriter {
+    on() {
+      return this;
+    }
+    transform(response: Response) {
+      return response;
+    }
+  }
+  (globalThis as Record<string, unknown>).HTMLRewriter = FakeRewriter;
+});
+
+/**
+ * files: exact pathname -> body. Missing files return the SPA shell as a 200
+ * (Cloudflare Pages not-found fallback). `redirects`: pathname prefix -> target
+ * prefix, silently followed (as ASSETS.fetch does with `_redirects` rules).
+ */
+function makeContext(
+  path: string,
+  {
+    files = {},
+    redirects = {},
+    method = 'GET',
+  }: {
+    files?: Record<string, string>;
+    redirects?: Record<string, string>;
+    method?: string;
+  } = {}
+): PagesContext & { nextCalls: string[] } {
+  const resolve = (pathname: string): string => {
+    for (const [from, to] of Object.entries(redirects)) {
+      if (pathname.startsWith(from)) return to + pathname.slice(from.length);
+    }
+    return pathname;
+  };
+  const assetsFetch = async (req: Request): Promise<Response> => {
+    const pathname = resolve(new URL(req.url).pathname);
+    const body = files[pathname] ?? SHELL;
+    return new Response(body, { status: 200, headers: { 'content-type': 'text/html' } });
+  };
+  const nextCalls: string[] = [];
+  return {
+    request: new Request(`${ORIGIN}${path}`, { method }),
+    env: { ASSETS: { fetch: assetsFetch } },
+    next: async () => {
+      nextCalls.push(path);
+      return new Response(SHELL, { status: 200, headers: { 'content-type': 'text/html' } });
+    },
+    nextCalls,
+  };
+}
+
+describe('createSeoMiddleware', () => {
+  it('301-strips trailing slashes on document routes', async () => {
+    const onRequest = createSeoMiddleware();
+    const res = await onRequest(makeContext('/en/techniques/x-wing/'));
+    expect(res.status).toBe(301);
+    expect(res.headers.get('location')).toBe(`${ORIGIN}/en/techniques/x-wing`);
+  });
+
+  it('injects a snapshot when one exists', async () => {
+    const onRequest = createSeoMiddleware();
+    const ctx = makeContext('/en/play', {
+      files: { '/html/en/play/index.html': SNAPSHOT, '/index.html': SHELL },
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/html');
+    expect(ctx.nextCalls).toHaveLength(0);
+  });
+
+  it('serves a genuine thin fallback whose canonical matches the route', async () => {
+    const onRequest = createSeoMiddleware();
+    const ctx = makeContext('/en/login', {
+      files: { '/en/login/index.html': THIN_FALLBACK('/en/login') },
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('canonical');
+    expect(ctx.nextCalls).toHaveLength(0);
+  });
+
+  it('rejects a followed-redirect fallback (canonical mismatch) and passes through', async () => {
+    // /ar/* is 308-mapped to /en/* by _redirects; ASSETS.fetch follows it
+    // silently, handing back the English page. The middleware must NOT serve
+    // that as /ar content — pass through so the static layer emits the 308.
+    const onRequest = createSeoMiddleware();
+    const ctx = makeContext('/ar/login', {
+      files: { '/en/login/index.html': THIN_FALLBACK('/en/login') },
+      redirects: { '/ar/': '/en/' },
+    });
+    const res = await onRequest(ctx);
+    expect(ctx.nextCalls).toHaveLength(1);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
+  it('noindexes the bare shell served for app-only routes', async () => {
+    const onRequest = createSeoMiddleware();
+    const ctx = makeContext('/en/play/8');
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+    expect(ctx.nextCalls).toHaveLength(1);
+  });
+
+  it('does not noindex genuine fallbacks or snapshots', async () => {
+    const onRequest = createSeoMiddleware();
+    const withFallback = await onRequest(
+      makeContext('/en/login', { files: { '/en/login/index.html': THIN_FALLBACK('/en/login') } })
+    );
+    expect(withFallback.headers.get('x-robots-tag')).toBeNull();
+    const withSnapshot = await onRequest(
+      makeContext('/en', { files: { '/html/en/index.html': SNAPSHOT, '/index.html': SHELL } })
+    );
+    expect(withSnapshot.headers.get('x-robots-tag')).toBeNull();
+  });
+
+  it('lets the rewrite hook 301 legacy paths', async () => {
+    const onRequest = createSeoMiddleware({
+      rewrite: ({ url, redirect }) => {
+        const m = url.pathname.match(/^\/([a-z]{2}(?:-[a-z]+)?)\/daily$/);
+        if (m) return redirect(`/${m[1]}/play/daily`);
+        return null;
+      },
+    });
+    const res = await onRequest(makeContext('/ja/daily'));
+    expect(res.status).toBe(301);
+    expect(res.headers.get('location')).toBe(`${ORIGIN}/ja/play/daily`);
+  });
+
+  it('exposes snapshotExists to the rewrite hook', async () => {
+    const seen: boolean[] = [];
+    const onRequest = createSeoMiddleware({
+      rewrite: async ({ snapshotExists }) => {
+        seen.push(await snapshotExists('/en/tutorials'));
+        seen.push(await snapshotExists('/en/nope'));
+        return null;
+      },
+    });
+    await onRequest(
+      makeContext('/tutorials', { files: { '/html/en/tutorials/index.html': SNAPSHOT } })
+    );
+    expect(seen).toEqual([true, false]);
+  });
+
+  it('answers HEAD like GET for snapshot routes', async () => {
+    const onRequest = createSeoMiddleware();
+    const res = await onRequest(
+      makeContext('/en/play', {
+        files: { '/html/en/play/index.html': SNAPSHOT, '/index.html': SHELL },
+        method: 'HEAD',
+      })
+    );
+    expect(res.status).toBe(200);
+    expect(res.body).toBeNull();
+  });
+
+  it('ignores asset requests and non-GET/HEAD methods', async () => {
+    const onRequest = createSeoMiddleware();
+    const asset = await onRequest(makeContext('/assets/index-abc123.js'));
+    expect(asset.headers.get('x-robots-tag')).toBeNull();
+    const post = makeContext('/en/play', { method: 'POST' });
+    await onRequest(post);
+    expect(post.nextCalls).toHaveLength(1);
+  });
+});
