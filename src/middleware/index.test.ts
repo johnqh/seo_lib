@@ -52,7 +52,10 @@ function makeContext(
   const assetsFetch = async (req: Request): Promise<Response> => {
     const pathname = resolve(new URL(req.url).pathname);
     const body = files[pathname] ?? SHELL;
-    return new Response(body, { status: 200, headers: { 'content-type': 'text/html' } });
+    return new Response(body, {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+    });
   };
   const nextCalls: string[] = [];
   return {
@@ -60,7 +63,10 @@ function makeContext(
     env: { ASSETS: { fetch: assetsFetch } },
     next: async () => {
       nextCalls.push(path);
-      return new Response(SHELL, { status: 200, headers: { 'content-type': 'text/html' } });
+      return new Response(SHELL, {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      });
     },
     nextCalls,
   };
@@ -122,11 +128,15 @@ describe('createSeoMiddleware', () => {
   it('does not noindex genuine fallbacks or snapshots', async () => {
     const onRequest = createSeoMiddleware();
     const withFallback = await onRequest(
-      makeContext('/en/login', { files: { '/en/login/index.html': THIN_FALLBACK('/en/login') } })
+      makeContext('/en/login', {
+        files: { '/en/login/index.html': THIN_FALLBACK('/en/login') },
+      })
     );
     expect(withFallback.headers.get('x-robots-tag')).toBeNull();
     const withSnapshot = await onRequest(
-      makeContext('/en', { files: { '/html/en/index.html': SNAPSHOT, '/index.html': SHELL } })
+      makeContext('/en', {
+        files: { '/html/en/index.html': SNAPSHOT, '/index.html': SHELL },
+      })
     );
     expect(withSnapshot.headers.get('x-robots-tag')).toBeNull();
   });
@@ -154,7 +164,9 @@ describe('createSeoMiddleware', () => {
       },
     });
     await onRequest(
-      makeContext('/tutorials', { files: { '/html/en/tutorials/index.html': SNAPSHOT } })
+      makeContext('/tutorials', {
+        files: { '/html/en/tutorials/index.html': SNAPSHOT },
+      })
     );
     expect(seen).toEqual([true, false]);
   });
