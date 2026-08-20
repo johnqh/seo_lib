@@ -1,5 +1,10 @@
 # seo_lib - AI Development Guide
 
+> **Git policy — never auto-commit or auto-push.** Leave your work in the working tree.
+> Run `git commit`, `git push`, `gh pr create`, or `scripts/push_all.sh` **only when the user
+> explicitly asks in that turn**. Approval for an earlier change does not carry forward, and
+> finishing a task is not permission to commit it.
+
 ## Overview
 
 `@sudobility/seo_lib` is a React component library providing SEO (Search Engine Optimization) and AEO (Answer Engine Optimization) components and utilities for Web3 applications. It offers ready-to-use React components for meta tags, structured data (JSON-LD), semantic HTML elements with ARIA accessibility, and AI training metadata generation -- all tailored for blockchain/Web3 email platforms.
@@ -242,3 +247,7 @@ bun run lint && bun run type-check && bun run test
 | `eslint-plugin-react-hooks` | ^7.0.0 | React Hooks linting |
 | `eslint-plugin-react-refresh` | ^0.4.0 | React Refresh (HMR) validation |
 | `ajv` | ^8.17.1 | JSON Schema validation (dev tooling) |
+
+## Git Workflow
+
+- Do not use feature branches for code changes. Always stay on the current branch.
