@@ -73,6 +73,16 @@ export interface SeoMiddlewareOptions {
   rewrite?(
     context: RewriteContext
   ): Response | null | undefined | Promise<Response | null | undefined>;
+
+  /**
+   * Claim a dotted path as a real document route. A path whose last segment
+   * contains a dot is normally treated as an asset and 404s when it does not
+   * resolve (see the missing-asset handling below), but some routes carry a
+   * dot inside a path param — mail_box renders `/:lang/points/:emailAccount`,
+   * where the account is an ENS name (`vitalik.eth`) or an email address.
+   * Return true to run such a path through the normal document pipeline.
+   */
+  allowDottedPath?(url: URL): boolean;
 }
 
 export const HEAD_MARKER = '<!--PRERENDER-HEAD-->';
@@ -114,7 +124,7 @@ export function createSeoMiddleware(options: SeoMiddlewareOptions = {}) {
     // served at a dotted path, so an HTML answer here always means the SPA
     // fallback fired for something that does not exist: send a real 404.
     const lastSegment = url.pathname.split('/').pop() ?? '';
-    if (lastSegment.includes('.')) {
+    if (lastSegment.includes('.') && !options.allowDottedPath?.(url)) {
       const assetResp = await next();
       const assetType = assetResp.headers.get('content-type') ?? '';
       if (assetResp.status === 200 && assetType.includes('text/html')) {

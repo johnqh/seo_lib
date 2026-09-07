@@ -205,6 +205,31 @@ describe('createSeoMiddleware', () => {
     expect(res.status).toBe(404);
   });
 
+  it('serves a dotted path an app claims as a real document route', async () => {
+    // Some routes legitimately carry a dot in a path param — mail_box renders
+    // /:lang/points/:emailAccount, where the account is an ENS name
+    // (vitalik.eth) or an email address. Those must not be swept up by the
+    // missing-asset 404, so an app can claim them via `allowDottedPath`.
+    const onRequest = createSeoMiddleware({
+      allowDottedPath: url => /^\/[a-z-]+\/points\//.test(url.pathname),
+    });
+    const res = await onRequest(
+      makeContext('/en/points/vitalik.eth', {
+        files: { '/index.html': SHELL },
+      })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('still 404s a dotted path the app does not claim', async () => {
+    const onRequest = createSeoMiddleware({
+      allowDottedPath: url => /^\/[a-z-]+\/points\//.test(url.pathname),
+    });
+    const res = await onRequest(makeContext('/en/mailto:info@sudobility.com'));
+    expect(res.status).toBe(404);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
   it('noindexes pages served from the *.pages.dev host', async () => {
     // Cloudflare serves every Pages project on <project>.pages.dev (and a
     // subdomain per preview deploy) alongside the custom domain. Those hosts
