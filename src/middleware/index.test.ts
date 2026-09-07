@@ -37,10 +37,16 @@ function makeContext(
     files = {},
     redirects = {},
     method = 'GET',
+    nextContentType = 'text/html',
+    origin = ORIGIN,
   }: {
     files?: Record<string, string>;
     redirects?: Record<string, string>;
     method?: string;
+    /** content-type `next()` answers with — a real asset is not text/html. */
+    nextContentType?: string;
+    /** Host the request arrives on (Pages also serves *.pages.dev). */
+    origin?: string;
   } = {}
 ): PagesContext & { nextCalls: string[] } {
   const resolve = (pathname: string): string => {
@@ -59,13 +65,13 @@ function makeContext(
   };
   const nextCalls: string[] = [];
   return {
-    request: new Request(`${ORIGIN}${path}`, { method }),
+    request: new Request(`${origin}${path}`, { method }),
     env: { ASSETS: { fetch: assetsFetch } },
     next: async () => {
       nextCalls.push(path);
       return new Response(SHELL, {
         status: 200,
-        headers: { 'content-type': 'text/html' },
+        headers: { 'content-type': nextContentType },
       });
     },
     nextCalls,
@@ -183,9 +189,55 @@ describe('createSeoMiddleware', () => {
     expect(res.body).toBeNull();
   });
 
+  it('404s a missing asset instead of serving the shell as a soft 404', async () => {
+    // A nonexistent dotted path falls through the SPA `_redirects` rule and
+    // Cloudflare answers with the 200 HTML shell. Serving that made every
+    // made-up path an indexable near-duplicate over an unbounded URL space.
+    const onRequest = createSeoMiddleware();
+    const res = await onRequest(makeContext('/nope.png'));
+    expect(res.status).toBe(404);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
+  it('404s spam-linked .html paths rather than returning the shell', async () => {
+    const onRequest = createSeoMiddleware();
+    const res = await onRequest(makeContext('/wap/html/list-recruitment.html'));
+    expect(res.status).toBe(404);
+  });
+
+  it('noindexes pages served from the *.pages.dev host', async () => {
+    // Cloudflare serves every Pages project on <project>.pages.dev (and a
+    // subdomain per preview deploy) alongside the custom domain. Those hosts
+    // answered 200 with the full site and only a canonical tag — a hint, not a
+    // directive — so the whole site was crawlable twice over.
+    const onRequest = createSeoMiddleware();
+    const ctx = makeContext('/en', {
+      files: { '/html/en/index.html': SNAPSHOT, '/index.html': SHELL },
+      origin: 'https://sudojo-app.pages.dev',
+    });
+    const res = await onRequest(ctx);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
+  it('leaves the canonical host indexable', async () => {
+    const onRequest = createSeoMiddleware();
+    const res = await onRequest(
+      makeContext('/en', {
+        files: { '/html/en/index.html': SNAPSHOT, '/index.html': SHELL },
+      })
+    );
+    expect(res.headers.get('x-robots-tag')).toBeNull();
+  });
+
   it('ignores asset requests and non-GET/HEAD methods', async () => {
     const onRequest = createSeoMiddleware();
-    const asset = await onRequest(makeContext('/assets/index-abc123.js'));
+    const asset = await onRequest(
+      makeContext('/assets/index-abc123.js', {
+        nextContentType: 'application/javascript',
+      })
+    );
+    expect(asset.status).toBe(200);
     expect(asset.headers.get('x-robots-tag')).toBeNull();
     const post = makeContext('/en/play', { method: 'POST' });
     await onRequest(post);

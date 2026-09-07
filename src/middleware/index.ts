@@ -83,19 +83,51 @@ export function snapshotPathFor(pathname: string): string {
   return `/html${clean}/index.html`;
 }
 
+/**
+ * Body returned for a dotted path that does not resolve to a real asset. Kept
+ * deliberately tiny — it exists to carry the 404 status, not to be read.
+ */
+const NOT_FOUND_BODY =
+  '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
+  '<meta name="robots" content="noindex"><title>404 Not Found</title></head>' +
+  '<body><h1>404 Not Found</h1></body></html>';
+
 export function createSeoMiddleware(options: SeoMiddlewareOptions = {}) {
-  return async function onRequest(context: PagesContext): Promise<Response> {
+  const handle = async function (context: PagesContext): Promise<Response> {
     const { request, next, env } = context;
     const url = new URL(request.url);
 
-    // Only transform GET/HEAD document navigations. Anything with a file
-    // extension is a real asset (js/css/png/json/xml/...) — let Cloudflare
-    // serve it directly. HEAD must take the same path as GET: letting it fall
-    // through to static serving made HEAD /en 308 to /en/ while GET /en/ 301s
-    // to /en — opposite canonicalization signals for crawlers.
+    // Only transform GET/HEAD document navigations. HEAD must take the same
+    // path as GET: letting it fall through to static serving made HEAD /en 308
+    // to /en/ while GET /en/ 301s to /en — opposite canonicalization signals
+    // for crawlers.
     if (request.method !== 'GET' && request.method !== 'HEAD') return next();
+
+    // Anything with a file extension is a real asset (js/css/png/json/xml/...)
+    // — let Cloudflare serve it directly. But a MISSING asset does not 404: it
+    // falls through the SPA `/* /index.html 200` rule and comes back as the
+    // HTML shell, so every made-up dotted path answered 200 with the generic
+    // shell title and no noindex. That turned an unbounded URL space into
+    // indexable near-duplicates — spam-linked paths (/wap/html/list-*.html,
+    // /html/list-*.html) got crawled and piled into "Crawled - currently not
+    // indexed", alongside every stale asset URL. No route in these apps is
+    // served at a dotted path, so an HTML answer here always means the SPA
+    // fallback fired for something that does not exist: send a real 404.
     const lastSegment = url.pathname.split('/').pop() ?? '';
-    if (lastSegment.includes('.')) return next();
+    if (lastSegment.includes('.')) {
+      const assetResp = await next();
+      const assetType = assetResp.headers.get('content-type') ?? '';
+      if (assetResp.status === 200 && assetType.includes('text/html')) {
+        return new Response(NOT_FOUND_BODY, {
+          status: 404,
+          headers: {
+            'content-type': 'text/html; charset=utf-8',
+            'x-robots-tag': 'noindex',
+          },
+        });
+      }
+      return assetResp;
+    }
 
     // Canonicalize every document route to have NO trailing slash (source of
     // truth), matching the canonical link, hreflang alternates, and sitemap.
@@ -272,5 +304,23 @@ export function createSeoMiddleware(options: SeoMiddlewareOptions = {}) {
       status: 200,
       headers: { 'content-type': 'text/html; charset=utf-8' },
     });
+  };
+
+  return async function onRequest(context: PagesContext): Promise<Response> {
+    const response = await handle(context);
+
+    // Cloudflare serves every project on <project>.pages.dev — plus a
+    // subdomain per preview deploy — alongside the custom domain, so the whole
+    // site was reachable and crawlable twice over. The only thing pointing at
+    // the real host was the canonical tag, which Google treats as a hint, not
+    // a directive. Tag these hosts noindex so the custom domain is the single
+    // indexable copy; redirects and assets are left untouched.
+    if (!new URL(context.request.url).hostname.endsWith('.pages.dev'))
+      return response;
+    const type = response.headers.get('content-type') ?? '';
+    if (response.status !== 200 || !type.includes('text/html')) return response;
+    const tagged = new Response(response.body, response);
+    tagged.headers.set('x-robots-tag', 'noindex');
+    return tagged;
   };
 }
